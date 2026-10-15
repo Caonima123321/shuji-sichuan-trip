@@ -1,0 +1,5 @@
+{
+  "_说明": "蜀迹协作后端地址。前端启动时会读本文件；读不到就回退到同源。",
+  "backend": "https://shuji-collab.onrender.com",
+  "room": ""
+}

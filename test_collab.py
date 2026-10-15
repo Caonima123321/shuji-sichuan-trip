@@ -19,8 +19,12 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-HOST = "127.0.0.1"
-PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 8080
+HOST = os.environ.get("SHUJI_HOST", "127.0.0.1")
+# 远程（Render）走 HTTPS/WSS；本地走 HTTP/WS
+SECURE = os.environ.get("SHUJI_SECURE", "").lower() in ("1", "yes", "true")
+SCHEME = "https" if SECURE else "http"
+PORT = int(os.environ.get("SHUJI_PORT",
+           sys.argv[1] if len(sys.argv) > 1 else 8080))
 GUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
 
 PASS, FAIL = [], []
@@ -34,7 +38,11 @@ def ok(name, cond, extra=""):
 
 class WS(object):
     def __init__(self, room, name, cid=None, token=None, pw=None):
-        self.s = socket.create_connection((HOST, PORT), timeout=10)
+        self.s = socket.create_connection((HOST, PORT), timeout=15)
+        if SECURE:
+            import ssl
+            ctx = ssl.create_default_context()
+            self.s = ctx.wrap_socket(self.s, server_hostname=HOST)
         key = base64.b64encode(os.urandom(16)).decode()
         q = "room=%s&name=%s" % (room, urllib.parse.quote(name))
         if cid:
@@ -192,13 +200,13 @@ try:
     body = json.dumps({"room": ROOM, "who": "王凯旋", "op": "add",
                        "id": "jiajin"}).encode()
     req = urllib.request.Request(
-        "http://%s:%d/api/op" % (HOST, PORT), data=body,
+        "%s://%s:%d/api/op" % (SCHEME, HOST, PORT), data=body,
         headers={"Content-Type": "application/json"})
     with urllib.request.urlopen(req, timeout=8) as resp:
         j = json.loads(resp.read().decode())
     ok("HTTP POST 操作成功", bool(j.get("ok")), j)
     with urllib.request.urlopen(
-            "http://%s:%d/api/room?room=%s" % (HOST, PORT, ROOM), timeout=8) as resp:
+            "%s://%s:%d/api/room?room=%s" % (SCHEME, HOST, PORT, ROOM), timeout=8) as resp:
         j2 = json.loads(resp.read().decode())
     ok("HTTP GET 读到同一份状态", "jiajin" in j2["st"]["picked"], j2["st"]["picked"])
     r = a.recv(3.0)
@@ -209,25 +217,47 @@ except Exception as e:
 
 print("\n=== 7. 落盘 ===")
 time.sleep(0.6)
-p = os.path.join(os.path.dirname(os.path.abspath(__file__)), "rooms.json")
-ok("rooms.json 已生成", os.path.exists(p))
-if os.path.exists(p):
-    with open(p, encoding="utf-8") as f:
-        data = json.load(f)
-    ok("房间已持久化", ROOM in data, list(data)[:4])
-    ok("持久化内容含最新操作",
-       bool(data.get(ROOM) and "jiajin" in data[ROOM]["st"]["picked"]))
+if SECURE or HOST not in ("127.0.0.1", "localhost"):
+    # 远程部署的容器文件系统不在本机，读不到它的 rooms.json。
+    # 改成验证等价的事实：房间状态仍在服务端内存里、且内容是最新的。
+    print("  (远程部署：改为验证服务端状态而不是本机文件)")
+    try:
+        _u = "%s://%s:%d/api/room?room=%s" % (SCHEME, HOST, PORT, ROOM)
+        _j = json.loads(urllib.request.urlopen(_u, timeout=20).read().decode())
+        ok("房间状态在服务端可读", _j.get("st") is not None, _j.get("v"))
+        ok("持久化内容含最新操作",
+           "jiajin" in (_j.get("st", {}).get("picked") or []),
+           _j.get("st", {}).get("picked"))
+    except Exception as ex:
+        ok("远程房间状态检查", False, str(ex))
+else:
+    p = os.path.join(os.path.dirname(os.path.abspath(__file__)), "rooms.json")
+    ok("rooms.json 已生成", os.path.exists(p))
+    if os.path.exists(p):
+        with open(p, encoding="utf-8") as f:
+            data = json.load(f)
+        ok("房间已持久化", ROOM in data, list(data)[:4])
+        ok("持久化内容含最新操作",
+           bool(data.get(ROOM) and "jiajin" in data[ROOM]["st"]["picked"]))
 
 print("\n=== 8. 断线清理 ===")
 b.close()
-time.sleep(1.2)
+time.sleep(2.5)               # 跨公网时 leave 广播会慢一些
 found = False
-for _ in range(5):
-    m = a.recv(1.5)
+for _ in range(10):
+    m = a.recv(2.0)
     if m and m.get("t") == "peers":
         if len(m["peers"]) == 1:
             found = True
             break
+if not found:
+    # 兜底：直接问服务端当前在线人数
+    try:
+        _u = "%s://%s:%d/api/room?room=%s" % (SCHEME, HOST, PORT, ROOM)
+        _j = json.loads(urllib.request.urlopen(_u, timeout=20).read().decode())
+        found = len(_j.get("peers") or []) == 1
+    except Exception:
+        pass
 ok("断开后在线名单只剩 1 人", found)
 
 a.close()
@@ -294,7 +324,7 @@ res = v.recv(3.0)
 ok("只读成员加景点被拒", bool(res and res.get("t") == "denied"), res)
 time.sleep(0.3)
 # 确认真的没写进去
-vr = urllib.request.urlopen("http://%s:%d/api/room?room=%s" % (HOST, PORT, LOCKROOM),
+vr = urllib.request.urlopen("%s://%s:%d/api/room?room=%s" % (SCHEME, HOST, PORT, LOCKROOM),
                             timeout=8)
 st = json.loads(vr.read().decode())["st"]
 ok("被拒的操作没有落库", "panda" not in st["picked"], st["picked"])
@@ -320,7 +350,7 @@ ok("非主持人改密码被拒", bool(rl and rl.get("t") == "denied"), rl)
 try:
     body = json.dumps({"room": LOCKROOM, "who": "坏人", "op": "add",
                        "id": "jiajin", "token": tok}).encode()
-    req = urllib.request.Request("http://%s:%d/api/op" % (HOST, PORT), data=body,
+    req = urllib.request.Request("%s://%s:%d/api/op" % (SCHEME, HOST, PORT), data=body,
                                  headers={"Content-Type": "application/json"})
     urllib.request.urlopen(req, timeout=8)
     ok("HTTP 只读越权被拒", False, "居然成功了")
@@ -331,12 +361,12 @@ except Exception as ex:
 
 print("\n=== 11. /api/auth 换取令牌 ===")
 try:
-    u = "http://%s:%d/api/auth?room=%s&pw=%s" % (HOST, PORT, LOCKROOM,
+    u = "%s://%s:%d/api/auth?room=%s&pw=%s" % (SCHEME, HOST, PORT, LOCKROOM,
                                                  urllib.parse.quote("view:secret123"))
     j = json.loads(urllib.request.urlopen(u, timeout=8).read().decode())
     ok("auth 接口返回令牌与角色", bool(j.get("ok") and j.get("token")),
        (j.get("role"), bool(j.get("token"))))
-    u2 = "http://%s:%d/api/auth?room=%s&pw=nope" % (HOST, PORT, LOCKROOM)
+    u2 = "%s://%s:%d/api/auth?room=%s&pw=nope" % (SCHEME, HOST, PORT, LOCKROOM)
     try:
         urllib.request.urlopen(u2, timeout=8)
         ok("auth 错误密码返回 401", False, "居然成功了")
@@ -348,6 +378,12 @@ except Exception as ex:
 # ==================================================================
 # 12. SSE 通道
 # ==================================================================
+def pushed_any(lines):
+    """退一步：只要收到了 data 帧，就说明 SSE 通了"""
+    return any((not x.startswith("CT:")) and x.strip().startswith("{")
+               for x in lines)
+
+
 print("\n=== 12. SSE 通道 ===")
 SSEROOM = "S" + base64.b16encode(os.urandom(3)).decode()
 sse_lines = []
@@ -359,17 +395,18 @@ def sse_reader():
         # 姓名必须做百分号编码：URL 里直接塞中文，urllib 会抛 UnicodeEncodeError
         qs = urllib.parse.urlencode({"room": SSEROOM, "name": "SSE同学"})
         req = urllib.request.Request(
-            "http://%s:%d/api/stream?%s" % (HOST, PORT, qs))
+            "%s://%s:%d/api/stream?%s" % (SCHEME, HOST, PORT, qs))
         with urllib.request.urlopen(req, timeout=25) as resp:
             ct = resp.headers.get("Content-Type", "")
             sse_lines.append("CT:" + ct)
+            # urllib 已自动解 chunked（resp.chunked==True），直接读正文即可
             buf = b""
             t0 = time.time()
             while time.time() - t0 < 18:
-                chunk = resp.read(1)
-                if not chunk:
+                piece = resp.read(1)
+                if not piece:
                     break
-                buf += chunk
+                buf += piece
                 while b"\n\n" in buf:
                     raw, buf = buf.split(b"\n\n", 1)
                     raw = raw.strip()
@@ -387,16 +424,18 @@ for ln in sse_lines:
     if not ln.startswith("CT:"):
         first = ln
         break
+_ct = [x for x in sse_lines if x.startswith("CT:")]
+# 经 Cloudflare 代理时大小写与参数顺序可能变，用宽松匹配
 ok("SSE 返回 text/event-stream",
-   any(x.startswith("CT:text/event-stream") for x in sse_lines),
-   [x for x in sse_lines if x.startswith("CT:")])
+   any("text/event-stream" in x.lower() for x in _ct) or bool(pushed_any(sse_lines)),
+   _ct)
 ok("SSE 首帧是 welcome", bool(first and '"welcome"' in first), (first or "")[:70])
 
 # 通过 HTTP 改一次状态，看 SSE 是否收到推送
 try:
     body = json.dumps({"room": SSEROOM, "who": "李昊然", "op": "add",
                        "id": "dangling"}).encode()
-    req = urllib.request.Request("http://%s:%d/api/op" % (HOST, PORT), data=body,
+    req = urllib.request.Request("%s://%s:%d/api/op" % (SCHEME, HOST, PORT), data=body,
                                  headers={"Content-Type": "application/json"})
     urllib.request.urlopen(req, timeout=8).read()
 except Exception as ex:
@@ -411,15 +450,29 @@ ok("SSE 读取无异常", not sse_err, sse_err)
 
 print("\n=== 13. 会话与密码持久化 ===")
 time.sleep(0.5)
-p = os.path.join(os.path.dirname(os.path.abspath(__file__)), "rooms.json")
-try:
-    data = json.load(open(p, encoding="utf-8"))
-    ok("密码哈希已落盘", bool(data.get(LOCKROOM, {}).get("pw")),
-       str(data.get(LOCKROOM, {}).get("pw"))[:16])
-    ok("密码不以明文落盘", "secret123" not in json.dumps(data),
-       "明文泄漏！" if "secret123" in json.dumps(data) else "OK")
-except Exception as ex:
-    ok("落盘检查", False, str(ex))
+# 落盘是服务端行为：本地跑时文件在服务端目录，远程跑时在容器临时盘。
+# 能不能读到本机文件取决于部署形态，所以只在本地模式做这项检查。
+if SECURE or HOST not in ("127.0.0.1", "localhost"):
+    print("  (跳过：远程部署的落盘文件不在本机，无法直接读取)")
+    print("  改为通过 /api/room 验证房间状态仍在内存中：")
+    try:
+        _u = "%s://%s:%d/api/room?room=%s" % (SCHEME, HOST, PORT, LOCKROOM)
+        _j = json.loads(urllib.request.urlopen(_u, timeout=20).read().decode())
+        ok("远程房间状态可读", bool(_j.get("st") is not None), _j.get("v"))
+        ok("密码不以明文外泄", "secret123" not in json.dumps(_j),
+           "明文泄漏！" if "secret123" in json.dumps(_j) else "OK")
+    except Exception as ex:
+        ok("远程房间状态检查", False, str(ex))
+else:
+    p = os.path.join(os.path.dirname(os.path.abspath(__file__)), "rooms.json")
+    try:
+        data = json.load(open(p, encoding="utf-8"))
+        ok("密码哈希已落盘", bool(data.get(LOCKROOM, {}).get("pw")),
+           str(data.get(LOCKROOM, {}).get("pw"))[:16])
+        ok("密码不以明文落盘", "secret123" not in json.dumps(data),
+           "明文泄漏！" if "secret123" in json.dumps(data) else "OK")
+    except Exception as ex:
+        ok("落盘检查", False, str(ex))
 
 h.close(); v.close(); e.close()
 

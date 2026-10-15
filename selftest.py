@@ -2,7 +2,9 @@
 """功能自测：注入断言脚本，用 Edge headless 跑一遍交互，把结果写进 body 属性后 dump 回来。"""
 import io, os, re, subprocess
 
-BASE = r"D:\d\sichuan-route-ppt\sichuan-trip"
+# 默认测本仓库的 static/app.html（相对本文件定位，换机器也能跑）
+BASE = os.environ.get("SHUJI_BASE") or os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "static")
 EDGE = r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
 
 src = io.open(os.path.join(BASE, "index.html"), encoding="utf-8").read()

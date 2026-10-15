@@ -5,6 +5,15 @@
 
 > 课程作业衍生项目 · 客群定位：高校在校大学生 · 路线全部在四川省内
 
+## 在线地址（已部署）
+
+**https://shuji-collab.onrender.com**
+
+打开即用，**不限网络** —— 不同 WiFi、不同城市、手机流量都能进同一个房间协作。
+
+> Render 免费实例闲置约 15 分钟会休眠，**第一次打开需等 30~60 秒**唤醒。
+> 演示前先自己访问一次预热即可。
+
 ---
 
 ## 功能
@@ -172,6 +181,21 @@ SSE 是单向的，但这个场景里客户端→服务端只有零星几个写�
 **状态粒度。** 只同步行程本身（选了哪些景点、几天、几人、勾了哪些清单），
 不同步「当前看哪个页签」，避免互相抢视图。
 
+**跨局域网怎么做到的。** 部署到公网后就是一个普通 HTTPS 站点，
+任何人都能访问 —— 不需要内网穿透、不需要同一个 WiFi。
+前端会按页面协议自动选连接方式：
+
+| 页面协议 | 连后端用 |
+|---|---|
+| `https://` | `wss://`（加密长连接） |
+| `http://` | `ws://` |
+
+**换后端地址不用改代码。** 三种方式，优先级从高到低：
+
+1. 界面上「我的 → 多人协作 → 后端地址」手填（存 localStorage）
+2. `static/shuji.json` 里的 `backend` 字段（部署时改这一个文件即可）
+3. 留空 → 与页面同源
+
 **密码怎么存的。** 只存 `sha256("shuji::" + 密码)`，不存明文；
 房间密码本身不参与传输（加入时用密码换一个随机令牌，之后凭令牌通信）。
 改密码会让所有旧令牌立即失效。
@@ -197,13 +221,18 @@ WebSocket 消息格式见 `server.py` 顶部注释。
 ## 测试
 
 ```bash
-python server.py          # 先起服务
-python test_collab.py     # 后端协议与权限
-python test_browser.py    # 浏览器双端同步
-python test_roles.py      # 浏览器三角色权限
+python server.py             # 先起本地服务
+python test_collab.py        # 后端协议与权限（49 项）
+python test_browser.py       # 浏览器双端同步（9 项）
+python test_roles.py         # 浏览器三角色权限（14 项）
+python selftest.py           # 前端渲染自测（36 项）
+
+# 换后端地址就能测别的部署
+SHUJI_HOST=shuji-collab.onrender.com SHUJI_PORT=443 SHUJI_SECURE=1 \
+  python test_collab.py
 ```
 
-四套测试，共 **108 项断言**：
+五套测试，共 **127 项断言**：
 
 | 文件 | 项数 | 覆盖内容 |
 |---|---|---|
@@ -211,6 +240,10 @@ python test_roles.py      # 浏览器三角色权限
 | `selftest.py` | 36 | 前端渲染与交互，断言所有图片 `naturalWidth > 0` |
 | `test_browser.py` | 9 | 真实浏览器开两个客户端，验证互相可见 + 改动实时同步 |
 | `test_roles.py` | 14 | 真实浏览器开三个客户端（主持人/只读/编辑），验证角色与权限拦截 |
+| `test_crossnet_proto.py` | 19 | **对线上 Render 实例**逐条复刻客户端协议：WSS 长连接、角色前缀、越权拒绝、跨公网广播、令牌重连、HTTP 兜底 |
+
+`SHUJI_HOST` / `SHUJI_PORT` / `SHUJI_SECURE` 三个环境变量可以切换测试目标，
+所以同一套测试既能测本地，也能测线上部署。
 
 ### 测试里踩过的坑，都记下来了
 
@@ -228,7 +261,16 @@ HTML 解析器会在那里提前闭合脚本，**整个 harness 静默失效**�
 
 **4. `--virtual-time-budget` 会快进 `setTimeout`。** 早期版本用它做「等 2 秒再操作」，
 结果 2 秒瞬间过去，客户端还没握手完就开始发指令，测试假失败。
-现在改成轮询等真实状态（`ws.readyState === 1`），不靠猜时间。
+现在改成轮询等真实状态，不靠猜时间。
+
+**5. 别给 `urllib` 再套一层 chunked 解码。** 线上响应带
+`Transfer-Encoding: chunked`，我以为要自己解帧，就写了个解码器 ——
+结果 0 帧。实测 `resp.read(1)` 返回的是 `b'd'`（`data:` 的 d），
+说明 **urllib 在 `resp.chunked=True` 时已经自动解好了**，我又套一层等于把正文当帧头解析。
+
+**6. socket 打开 ≠ 入房完成。** 角色和令牌是服务端在 `welcome` 帧里下发的。
+只等 `readyState === 1` 就取快照，会拿到过时的空角色 ——
+本地毫秒级差异看不出来，跨公网 2.9 秒延迟下立刻暴露。改成等 `COLLAB.token` 就位。
 
 
 

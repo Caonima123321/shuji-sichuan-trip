@@ -699,7 +699,9 @@ table.tb td.n{font-family:var(--mono);text-align:right;font-variant-numeric:tabu
               </div>
             </div>
             <div class="step" style="padding:9px 10px;margin-bottom:9px">
-              <div class="lb">后端地址（留空 = 与页面同源）</div>
+              <div class="lb">后端地址（留空 = 与页面同源）
+                <span id="cCfgSrc" style="color:var(--ink3);font-weight:400"></span>
+              </div>
               <input id="cBackend" placeholder="如 shuji-collab.onrender.com"
                 style="width:100%;border:none;background:none;font-family:var(--mono);
                        font-size:12px;color:var(--ink2);margin-top:6px;outline:none">
@@ -1081,13 +1083,41 @@ function collabURL(){
 
 /* 后端地址：默认与页面同源（后端同时托管前端时无需配置）；
    GitHub Pages 这类纯静态托管，则指向 Render 上的后端 */
+/* shuji.json 里配置的后端地址（fetch 得到，file:// 下会失败，静默跳过） */
+let REMOTE_CFG = null;
+
 function backendBase(){
+  // 优先级：localStorage（用户在界面里填的）> shuji.json > 同源
   let b = '';
   try { b = localStorage.getItem('shuji_backend') || ''; } catch(e){}
-  b = (b || '').trim().replace(/\/+$/, '');
+  b = (b || '').trim();
+  if (!b && REMOTE_CFG && REMOTE_CFG.backend) b = String(REMOTE_CFG.backend).trim();
+  b = b.replace(/\/+$/, '');
   if (!b) return location.origin;                  // 同源
   if (!/^https?:\/\//i.test(b)) b = 'https://' + b;   // 允许只填域名
   return b;
+}
+
+/* 启动时拉一次配置；失败就算了，不影响单机使用 */
+function loadRemoteConfig(){
+  if (!location.protocol.startsWith('http')) return;   // file:// 直接跳过
+  try {
+    fetch('shuji.json', {cache:'no-store'})
+      .then(r => r.ok ? r.json() : null)
+      .then(j => {
+        if (!j) return;
+        REMOTE_CFG = j;
+        const b = String(j.backend || '').trim();
+        if (b && $('#cBackend') && !$('#cBackend').value) $('#cBackend').value = b;
+        // URL 带 room= 且配置里有默认房间，就自动入房
+        if (j.room && location.search.indexOf('room=') === -1){
+          const u = new URL(location.href);
+          u.searchParams.set('room', String(j.room).toUpperCase());
+          history.replaceState(null, '', u);
+        }
+      })
+      .catch(() => {});
+  } catch(e){}
 }
 
 function saveCollabSession(){
@@ -1118,11 +1148,6 @@ function wsURL(){
 function sseURL(){
   const b = backendBase();
   return b + '/api/stream?room=' + encodeURIComponent(COLLAB.room) + authQuery();
-}
-
-/* 同源才可能连得上；跨域时只走 HTTP 轮询（WebSocket 无 CORS 概念，能连就赚） */
-function sameOriginBackend(){
-  try { return new URL(backendBase()).origin === location.origin; } catch(e){ return false; }
 }
 
 function connectCollab(room, name, pw){
@@ -2018,6 +2043,12 @@ function renderCollabPanel(){
     '<span class="tiny">等待同伴加入…</span>';
   const b = backendBase();
   const same = b === location.origin;
+  if ($('#cCfgSrc')){
+    $('#cCfgSrc').textContent = same ? '与页面同源'
+      : (REMOTE_CFG && REMOTE_CFG.backend && !(function(){
+           try { return localStorage.getItem('shuji_backend'); } catch(e){ return ''; }
+         })() ? '来自 shuji.json' : '手动填写');
+  }
   $('#cInvite').textContent = location.origin + location.pathname +
     '?room=' + COLLAB.room + (same ? '' : '&backend=' + encodeURIComponent(b));
   renderLog();
@@ -2048,6 +2079,7 @@ go('rec');
 
 /* 启动协作：URL 带 ?room= 就自动入房，否则读上次的房间 */
 (function initCollab(){
+  loadRemoteConfig();
   const u = collabURL();
   let nm = u.name, rm = u.room;
   try {
