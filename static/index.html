@@ -506,10 +506,10 @@ table.tb td.n{font-family:var(--mono);text-align:right;font-variant-numeric:tabu
     <section class="view active" id="v-rec">
       <div class="collab" id="collabBar">
         <span class="dot" id="cDot"></span>
-        <span class="rm" id="cRoom">单机</span>
+        <span class="rm" id="cRoom">未加入房间</span>
         <span class="who" id="cWho"></span>
         <span class="sp"></span>
-        <span class="st" id="cStat">离线</span>
+        <span class="st" id="cStat">进「我的」加入</span>
       </div>
       <div class="carousel" id="carousel">
         <div class="slides" id="slides"></div>
@@ -653,7 +653,7 @@ table.tb td.n{font-family:var(--mono);text-align:right;font-variant-numeric:tabu
           <div class="seal" style="width:46px;height:46px;font-size:13px">蜀<br>迹</div>
           <div style="flex:1">
             <div style="font-family:var(--serif);font-size:16px;font-weight:600;letter-spacing:1.6px">蜀迹 · 行程簿</div>
-            <div class="tiny" style="margin-top:4px">四川旅游规划 · 单文件离线版</div>
+            <div class="tiny" style="margin-top:4px">四川旅游规划 · 在线协作版</div>
           </div>
         </div>
 
@@ -699,10 +699,10 @@ table.tb td.n{font-family:var(--mono);text-align:right;font-variant-numeric:tabu
               </div>
             </div>
             <div class="step" style="padding:9px 10px;margin-bottom:9px">
-              <div class="lb">后端地址（留空 = 与页面同源）
+              <div class="lb">后端地址（留空 = 用线上服务器）
                 <span id="cCfgSrc" style="color:var(--ink3);font-weight:400"></span>
               </div>
-              <input id="cBackend" placeholder="如 shuji-collab.onrender.com"
+              <input id="cBackend" placeholder=https://shuji-collab.onrender.com"
                 style="width:100%;border:none;background:none;font-family:var(--mono);
                        font-size:12px;color:var(--ink2);margin-top:6px;outline:none">
             </div>
@@ -737,23 +737,6 @@ table.tb td.n{font-family:var(--mono);text-align:right;font-variant-numeric:tabu
               <span style="font-family:var(--mono);color:var(--red);word-break:break-all"
                 id="cInvite"></span>
             </div>
-          </div>
-        </div>
-
-        <div class="sec"><span class="t">局域网共享</span><span class="orn"></span>
-          <span class="tiny">手机扫码打开</span></div>
-        <div class="card" style="display:flex;align-items:center;gap:14px">
-          <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAUoAAAFKCAAAAABeQknZAAAEUklEQVR4nO3dQY6bMABA0bjq/a9Md50uELLlP8BU761Gk0CiL2dhYcw4PjR+RedByo5RmZEyI2VGyoyUGSkzUmakzEiZkTIjZUbKjJQZKTNSZqTMSJmRMiNlRsqMlBkpM1JmpMxImZEyI2VGyoyUGSkzUmakzEiZkTIjZUbKjJSZ37NvHMnHHZfnm72HaEweUX/na0ZlRsqMlBkpM1JmpMxImZEyI+X9s50v6/sajG87y9mrxw2fdsaozEiZkTIjZUbKjJQZKTNSZqR8crYzOyM4Jo89NuYas1d5Zs+8s0OdUZmRMiNlRsqMlBkpM1JmpMxI+Y7ZTmNMXpUZl/9bn/fUjMqMlBkpM1JmpMxImZEyI2VGyv9pttPcZ/P8c4OMyoyUGSkzUmakzEiZkTIjZUbKd8x2dmYYx/KatvUrP9efWzMqM1JmpMxImZEyI2VGyoyUGSmfnO00O52NjRlLfbdOw6jMSJmRMiNlRsqMlBkpM1JmpMyM51eAjY3rPWfct/Pj+YFnpMxImZEyI2VGyoyUGSnvn+3MXh054us4O9+qeRqP5+3czg88I2VGyoyUGSkzUmakzEj5ttnOcXlEsy6teWrPtZ05mFGZkTIjZUbKjJQZKTNSZqTMSPnePdnG8t7Rs/OKs2Prz/W8nVfwA89ImZEyI2VGyoyUGSkzUt4/27m+ejNO3nf9v+ZK0s5TSOtrRUZlRsqMlBkpM1JmpMxImZEyI+X9s52d9WZj48zrM5trs88oPfsG14zKjJQZKTNSZqTMSJmRMiNlRsp3XNt5054Dx+Srs/OZ9bmVUZmRMiNlRsqMlBkpM1JmpMxI+eQO1OtPAx3J/+7Ym2DnM4zKjJQZKTNSZqTMSJmRMiNlRsq3rWQbk0esr3P7bMyt1o+dffWMUZmRMiNlRsqMlBkpM1JK+T5G5TueLrqzKuxYfl9z3846s53b+YFnpMxImZEyI2VGyoyUGSnfsQP1+t7RO3sTzM57vu/pPteMyoyUGSkzUmakzEiZkTIjZUbKJ1ey7Ti+bT4zu5bu+ogdRmVGyoyUGSkzUmakzEiZkTIj5ZPXdnb2Nbi2fqdPs0/b+pnPGJUZKTNSZqTMSJmRMiNlRsqMlO9YyVavKBuXr66fed3OntpGZUbKjJQZKTNSZqTMSJmRMiPlO2Y7jZHsurazr0Gzps2ozEiZkTIjZUbKjJQZKTNSZqT8n2Y7nxt2Xbu+fnR9xCyjMiNlRsqMlBkpM1JmpMxImZHyZ+3J9klWo62vLZu9b2fnbp0vRmVGyoyUGSkzUmakzEiZkTIj5ZOzneYKzPj7V/PEn/Vd12afdOq+ndv5gWekzEiZkTIjZUbKjJQZKd/xdFH+ZVRmpMxImZEyI2VGSinfx6jMSJmRMiNlRsqMlBkpM1JmpMxImZEyI2VGyoyUGSkzUmakzEiZkTIjZUbKjJQZKTNSZqTMSJmRMiNlRsqMlBkpM1J+Kn8AsLWDsi1G+wgAAAAASUVORK5CYII=" alt="局域网二维码"
-               style="width:104px;height:104px;flex:0 0 auto;border-radius:6px;
-                      border:1px solid var(--line2);background:#fff;padding:4px">
-          <div style="flex:1;min-width:0">
-            <div style="font-family:var(--serif);font-size:13px;font-weight:600;
-                        letter-spacing:1px">扫码在手机上打开</div>
-            <div class="tiny" style="margin-top:6px;line-height:1.7">
-              手机连同一个 WiFi，扫码即可访问。桌面端直接在浏览器打开下面这个地址：
-            </div>
-            <div class="tiny" style="font-family:var(--mono);color:var(--red);
-                        margin-top:7px;word-break:break-all">http://10.10.93.73:8080/</div>
           </div>
         </div>
 
@@ -1081,6 +1064,11 @@ function collabURL(){
   return { room:(q.get('room')||'').toUpperCase(), name:q.get('name')||'', backend:bk };
 }
 
+/* 线上后端地址：写死一个兜底值。
+   优先级是 localStorage > shuji.json > 本常量 > 与页面同源。
+   shuji.json 在后端上，后端挂了也就读不到，所以需要这个兜底。*/
+const LIVE_BACKEND = 'https://shuji-collab.onrender.com';
+
 /* 后端地址：默认与页面同源（后端同时托管前端时无需配置）；
    GitHub Pages 这类纯静态托管，则指向 Render 上的后端 */
 /* shuji.json 里配置的后端地址（fetch 得到，file:// 下会失败，静默跳过） */
@@ -1092,13 +1080,15 @@ function backendBase(){
   try { b = localStorage.getItem('shuji_backend') || ''; } catch(e){}
   b = (b || '').trim();
   if (!b && REMOTE_CFG && REMOTE_CFG.backend) b = String(REMOTE_CFG.backend).trim();
+  // 页面通过 http(s) 打开时，兜底指向线上实例；file:// 下没意义，退回同源
+  if (!b && /^https?:/i.test(location.protocol)) b = LIVE_BACKEND;
   b = b.replace(/\/+$/, '');
   if (!b) return location.origin;                  // 同源
   if (!/^https?:\/\//i.test(b)) b = 'https://' + b;   // 允许只填域名
   return b;
 }
 
-/* 启动时拉一次配置；失败就算了，不影响单机使用 */
+/* 启动时拉一次配置；失败就用 LIVE_BACKEND 兜底 */
 function loadRemoteConfig(){
   if (!location.protocol.startsWith('http')) return;   // file:// 直接跳过
   try {
@@ -1109,6 +1099,7 @@ function loadRemoteConfig(){
         REMOTE_CFG = j;
         const b = String(j.backend || '').trim();
         if (b && $('#cBackend') && !$('#cBackend').value) $('#cBackend').value = b;
+        renderCfgSrc();
         // URL 带 room= 且配置里有默认房间，就自动入房
         if (j.room && location.search.indexOf('room=') === -1){
           const u = new URL(location.href);
@@ -1361,13 +1352,13 @@ function renderCollab(){
   dot.className = 'dot ' + (COLLAB.mode === 'ws' ? 'on'
                             : COLLAB.mode === 'poll' ? 'poll'
                             : on ? 'off' : '');
-  $('#cRoom').textContent = on ? '房间 ' + COLLAB.room : '单机模式';
+  $('#cRoom').textContent = on ? '房间 ' + COLLAB.room : '未加入房间';
   $('#cWho').innerHTML = on
     ? '<span class="peers">' + COLLAB.peers.slice(0,6).map(p =>
         '<i title="' + p.name + '">' + initial(p.name) + '</i>').join('') +
       '</span>' + (COLLAB.peers.length ? ' ' + COLLAB.peers.length + ' 人在线' : '')
     : '';
-  $('#cStat').textContent = !on ? '点「协作」开启'
+  $('#cStat').textContent = !on ? '进「我的」加入'
     : COLLAB.mode === 'ws' ? '实时同步'
     : COLLAB.mode === 'poll' ? '轮询同步'
     : COLLAB.mode === 'connecting' ? '连接中…' : '已断开';
@@ -2007,6 +1998,19 @@ $('#cLeave').addEventListener('click', () => {
   toast('已退出协作');
 });
 
+/* 后端地址来源提示。单独成函数，因为 shuji.json 是异步加载的，
+   加载完要能在不重进协作面板的情况下刷新这行字。*/
+function renderCfgSrc(b){
+  const el = document.getElementById('cCfgSrc');
+  if (!el) return;
+  b = b || backendBase();
+  let saved = '';
+  try { saved = localStorage.getItem('shuji_backend') || ''; } catch(e){}
+  el.textContent = saved ? '手动填写'
+    : (REMOTE_CFG && REMOTE_CFG.backend) ? '来自 shuji.json'
+    : (b === location.origin) ? '与页面同源' : '线上默认';
+}
+
 function renderCollabPanel(){
   const on = COLLAB.on;
   const setup = $('#cSetup'), live = $('#cLive');
@@ -2015,7 +2019,8 @@ function renderCollabPanel(){
   live.style.display = on ? '' : 'none';
   $('#cMode').textContent = on
     ? (COLLAB.mode === 'ws' ? '实时连接'
-       : COLLAB.mode === 'sse' ? 'SSE 推送' : '轮询中') : '';
+       : COLLAB.mode === 'sse' ? 'SSE 推送' : '轮询中')
+    : '未加入';
   if (!on) return;
   $('#cRoomName').textContent = '房间 ' + COLLAB.room;
   const d2 = $('#cDot2');
@@ -2041,14 +2046,7 @@ function renderCollabPanel(){
     '<i title="' + (p.name || '') + '（' + (ROLE_TXT[p.role] || p.role || '') + '）' +
     '">' + initial(p.name) + '</i>').join('') ||
     '<span class="tiny">等待同伴加入…</span>';
-  const b = backendBase();
-  const same = b === location.origin;
-  if ($('#cCfgSrc')){
-    $('#cCfgSrc').textContent = same ? '与页面同源'
-      : (REMOTE_CFG && REMOTE_CFG.backend && !(function(){
-           try { return localStorage.getItem('shuji_backend'); } catch(e){ return ''; }
-         })() ? '来自 shuji.json' : '手动填写');
-  }
+  renderCfgSrc(backendBase());
   $('#cInvite').textContent = location.origin + location.pathname +
     '?room=' + COLLAB.room + (same ? '' : '&backend=' + encodeURIComponent(b));
   renderLog();
