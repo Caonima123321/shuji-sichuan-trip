@@ -1,0 +1,2059 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>蜀迹 · 四川旅游规划</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  /* 故宫配色：米金底 + 朱砂红 + 淡金 */
+  --paper:#F5EFE1;        /* 页面底色 · 米 */
+  --card:#FBF7ED;         /* 卡片 · 乳白 */
+  --card2:#F1E7D2;        /* 次级卡片 · 浅米 */
+  --line:#E2D5BA;         /* 描边 · 淡金 */
+  --line2:#D6C39C;        /* 强描边 */
+  --ink:#3A2D20;          /* 正文 · 墨褐 */
+  --ink2:#6B5A45;         /* 次级文字 */
+  --ink3:#9A8A72;         /* 弱化文字 */
+  --red:#9E2B25;          /* 朱砂 */
+  --red2:#B8443A;         /* 朱砂亮 */
+  --gold:#C5A059;         /* 淡金 */
+  --gold2:#8A6E33;        /* 深金 */
+  --goldlt:#E8D9B4;       /* 极淡金 */
+  --seal:#B02E24;
+  --serif:"Songti SC","Noto Serif SC","Source Han Serif SC",STSong,SimSun,serif;
+  --sans:-apple-system,"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  --mono:ui-monospace,"SF Mono",Consolas,monospace;
+}
+html,body{height:100%}
+body{
+  font-family:var(--sans);color:var(--ink);
+  background:
+    radial-gradient(900px 520px at 12% -6%, #4a3a28 0%, transparent 58%),
+    radial-gradient(760px 480px at 94% 106%, #5c3226 0%, transparent 56%),
+    linear-gradient(158deg,#1d1710 0%,#332a1e 46%,#241d15 100%);
+  min-height:100%;display:flex;align-items:center;justify-content:center;padding:20px;
+}
+.phone{
+  position:relative;width:400px;height:840px;background:#14100b;border-radius:44px;padding:10px;
+  box-shadow:0 40px 90px rgba(0,0,0,.65),0 0 0 1.5px rgba(226,198,140,.18);
+}
+.screen{position:relative;width:100%;height:100%;border-radius:35px;overflow:hidden;
+  background:var(--paper);display:flex;flex-direction:column}
+.notch{position:absolute;top:9px;left:50%;transform:translateX(-50%);width:104px;height:22px;
+  background:#0d0a06;border-radius:14px;z-index:90}
+
+/* ================= 状态栏 ================= */
+.statusbar{
+  position:absolute;top:0;left:0;right:0;height:54px;padding:0 20px 0 22px;z-index:80;
+  display:flex;align-items:center;justify-content:space-between;pointer-events:none;
+  color:#2E2317;transition:color .3s,background .3s;
+}
+.statusbar.on-dark{
+  color:#FBF3E2;
+  background:linear-gradient(180deg,rgba(30,22,14,.5),rgba(30,22,14,0));
+}
+.statusbar:not(.on-dark) .sb-time,
+.statusbar:not(.on-dark) .bat-pct{text-shadow:none}
+.statusbar:not(.on-dark) .sig i,
+.statusbar:not(.on-dark) .wifi{filter:none;
+  text-shadow:none}
+.statusbar:not(.on-dark) .bat-shell{box-shadow:inset 0 0 0 1.25px currentColor}
+.sb-l,.sb-r{display:flex;align-items:center;gap:8px}
+.sb-time{font-family:var(--mono);font-size:13.5px;font-weight:600;letter-spacing:-.3px;
+  font-variant-numeric:tabular-nums;text-shadow:0 1px 4px rgba(0,0,0,.4)}
+.sig{display:flex;align-items:flex-end;gap:2px;height:11.5px;margin-bottom:.5px}
+.sig i{width:3px;border-radius:1.6px;background:currentColor;box-shadow:0 0 3px rgba(0,0,0,.35)}
+.sig i:nth-child(1){height:4px}.sig i:nth-child(2){height:6.5px}
+.sig i:nth-child(3){height:9px}.sig i:nth-child(4){height:11.5px;opacity:.32}
+.wifi{width:13.5px;height:11px;margin-bottom:.5px;filter:drop-shadow(0 1px 3px rgba(0,0,0,.35))}
+.wifi path{fill:none;stroke:currentColor;stroke-linecap:round}
+.wifi .a1{stroke-width:2.4}.wifi .a2{stroke-width:1.9;opacity:.62}.wifi .a3{stroke-width:1.9;opacity:.34}
+.bat{display:flex;align-items:center;gap:5px}
+.bat-pct{font-family:var(--mono);font-size:12px;font-weight:650;font-variant-numeric:tabular-nums;
+  text-shadow:0 1px 4px rgba(0,0,0,.4)}
+.bat-shell{position:relative;display:block;width:24px;height:12px;padding:1.6px;border-radius:3.5px;
+  box-shadow:inset 0 0 0 1.25px currentColor,0 1px 3px rgba(0,0,0,.3)}
+.bat-shell::after{content:"";position:absolute;right:-2.8px;top:50%;transform:translateY(-50%);
+  width:1.6px;height:4.4px;border-radius:0 1.6px 1.6px 0;background:currentColor;opacity:.45}
+.bat-fill{display:block;height:100%;width:70%;border-radius:2px;background:currentColor;
+  transition:width .75s cubic-bezier(.3,.9,.3,1),background .45s}
+.bat.low .bat-fill{background:#E2603F}
+.bat.chg .bat-fill{background:#6FB98F}
+.bat .bolt{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:8.5px;height:8.5px;
+  display:none;z-index:2}
+.bat.chg .bolt{display:block}
+.bat .bolt path{fill:#fff}
+
+/* ================= 视图 ================= */
+.views{flex:1;position:relative;overflow:hidden}
+.view{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;padding-top:54px;padding-bottom:20px;
+  opacity:0;transform:translateY(10px);pointer-events:none;transition:opacity .3s,transform .3s}
+.view.active{opacity:1;transform:none;pointer-events:auto}
+.view::-webkit-scrollbar{width:0}
+.wrap{padding:0 16px}
+
+/* ================= 协作条 ================= */
+.collab{position:absolute;top:54px;left:0;right:0;z-index:70;height:30px;
+  display:flex;align-items:center;gap:7px;padding:0 14px;
+  background:linear-gradient(180deg,rgba(20,14,8,.62),rgba(20,14,8,0));
+  color:#FBF2DE;font-size:10.5px;pointer-events:none}
+.collab.plain{position:static;background:none;color:var(--ink2);height:auto;
+  padding:8px 0 2px;pointer-events:auto}
+.collab .dot{width:7px;height:7px;border-radius:50%;background:#9A8A72;flex:0 0 auto;
+  box-shadow:0 0 0 2px rgba(255,255,255,.25)}
+.collab .dot.on{background:#6FB98F;animation:pulse 2s infinite}
+.collab .dot.poll{background:#E0A24C}
+.collab .dot.off{background:#C4635A}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.collab .rm{font-family:var(--mono);letter-spacing:1px;opacity:.95}
+.collab .who{opacity:.8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:150px}
+.collab .sp{flex:1}
+.collab .st{opacity:.85}
+
+/* 在线成员头像 */
+.peers{display:flex;align-items:center;gap:5px}
+.peers i{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;
+  font-family:var(--serif);font-size:10px;font-style:normal;color:#FBF2DE;
+  background:linear-gradient(150deg,#B8443A,#9E2B25);border:1.5px solid #FBF7ED;
+  box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.peers i:nth-child(3n){background:linear-gradient(150deg,#C9A24B,#A8863A)}
+.peers i:nth-child(3n+2){background:linear-gradient(150deg,#5A7C4A,#3F5A34)}
+
+/* 活动日志 */
+.log{display:flex;flex-direction:column;gap:0}
+.log .li{display:flex;align-items:baseline;gap:8px;padding:7px 0;font-size:11px;
+  border-bottom:1px dashed var(--line)}
+.log .li:last-child{border-bottom:none}
+.log .li .tm{font-family:var(--mono);font-size:9px;color:var(--ink3);flex:0 0 auto}
+.log .li .wh{font-family:var(--serif);color:var(--red);flex:0 0 auto;font-weight:600}
+.log .li .ac{color:var(--ink2);line-height:1.5}
+
+/* ================= 轮播 ================= */
+.carousel{position:relative;height:238px;overflow:hidden;background:#2b2115}
+.slides{display:flex;height:100%;transition:transform .55s cubic-bezier(.4,.1,.2,1)}
+.slide{position:relative;flex:0 0 100%;height:100%}
+.slide img{width:100%;height:100%;object-fit:cover;display:block}
+.slide .veil{position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(18,12,7,.34) 0%,rgba(18,12,7,0) 24%,rgba(16,11,6,.60) 62%,rgba(14,10,6,.90) 100%)}
+.slide .txt{position:absolute;left:20px;right:20px;bottom:44px;color:#FDF6E7}
+.slide .tag{display:inline-block;font-family:var(--serif);font-size:10.5px;letter-spacing:2px;
+  color:#F0DDB4;border:1px solid rgba(224,196,140,.62);border-radius:3px;padding:2px 8px;
+  background:rgba(40,28,16,.35)}
+.slide h2{font-family:var(--serif);font-size:25px;font-weight:600;letter-spacing:3px;margin:9px 0 6px;
+  text-shadow:0 2px 10px rgba(20,12,6,.7)}
+.slide .meta{font-size:11px;color:rgba(253,246,231,.94);letter-spacing:.6px;text-shadow:0 1px 7px rgba(0,0,0,.8)}
+.dots{position:absolute;right:16px;bottom:15px;display:flex;gap:5px;z-index:5}
+.dots i{width:5px;height:5px;border-radius:50%;background:rgba(253,246,231,.4);transition:all .3s}
+.dots i.on{width:15px;border-radius:3px;background:var(--goldlt)}
+.carousel .grain{position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(180deg,rgba(255,255,255,.06),transparent 40%)}
+
+/* ================= 通用卡片 ================= */
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 14px;
+  margin-bottom:10px;box-shadow:0 1px 0 rgba(255,255,255,.7) inset}
+.card.plain{border-radius:0;border-left:none;border-right:none;margin-bottom:0}
+.sec{display:flex;align-items:center;gap:9px;margin:16px 0 10px}
+.sec .t{font-family:var(--serif);font-size:16px;font-weight:600;letter-spacing:1.5px;color:var(--ink);
+  white-space:nowrap}
+.sec .orn{flex:1;height:5px;opacity:.6;
+  background:
+    linear-gradient(90deg,transparent,var(--line2) 12%,var(--line2) 88%,transparent);
+  -webkit-mask:repeating-linear-gradient(90deg,#000 0 3px,transparent 3px 6px)}
+.sec .more{font-size:11px;color:var(--ink3);white-space:nowrap;display:flex;align-items:center;gap:2px}
+.sec .more::after{content:"›";font-size:14px;line-height:1}
+.muted{font-size:11.5px;color:var(--ink2);line-height:1.75}
+.tiny{font-size:10px;color:var(--ink3);line-height:1.6}
+
+/* 印章 */
+.seal{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:5px;
+  background:var(--seal);color:#F6E8CE;font-family:var(--serif);font-size:10px;line-height:1.05;
+  letter-spacing:1px;text-align:center;box-shadow:inset 0 0 0 1.5px rgba(246,232,206,.55)}
+
+/* ================= 今日卡 ================= */
+.today{position:relative;overflow:hidden;background:linear-gradient(160deg,#FAF4E6,#EFE2C6);
+  border:1px solid var(--line2);border-radius:14px;padding:14px 15px 15px;margin-bottom:12px}
+.today .hd{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.today h3{font-family:var(--serif);font-size:19px;font-weight:600;letter-spacing:2px}
+.today .date{font-size:11px;color:var(--ink2);margin-top:3px;letter-spacing:.5px}
+.today .clouds{position:absolute;right:-12px;top:-14px;opacity:.9;pointer-events:none}
+.today .row{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}
+.tile{position:relative;overflow:hidden;border-radius:10px;min-height:92px;padding:11px 12px;
+  display:flex;flex-direction:column;justify-content:flex-start;cursor:pointer;
+  border:1px solid var(--line2);transition:transform .2s}
+.tile:active{transform:scale(.98)}
+.tile.red{background:linear-gradient(158deg,#A82F27,#8A231D);color:#FBEFD8;border-color:#7E211B}
+.tile.red::after{content:"";position:absolute;right:-24px;bottom:-30px;width:92px;height:92px;
+  border-radius:50%;background:radial-gradient(circle,rgba(240,200,140,.28),transparent 68%)}
+.tile.photo{background:#3a2c1c;color:#FDF6E7;padding:0}
+.tile.photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.9}
+.tile.photo .in{position:relative;z-index:2;padding:11px 12px;
+  background:linear-gradient(180deg,rgba(16,11,6,.14),rgba(16,11,6,.68))}
+.tile .tt{font-family:var(--serif);font-size:16px;font-weight:600;letter-spacing:2px}
+.tile .st{font-size:10.5px;opacity:.86;margin-top:5px;line-height:1.6}
+.tile .st em{font-style:normal;color:#F0C97A}
+.tile.photo .st em{color:#F0C97A}
+.today .go{display:flex;align-items:center;gap:9px;margin-top:12px;padding-top:11px;
+  border-top:1px dashed var(--line2);font-size:12.5px;color:var(--ink);cursor:pointer}
+.today .go .ic{width:22px;height:22px;flex:0 0 auto;color:var(--red);display:block}
+.today .go .ic svg{width:100%;height:100%;stroke:currentColor;fill:none;stroke-width:1.4;
+  stroke-linecap:round;stroke-linejoin:round}
+.today .go .arw{margin-left:auto;color:var(--ink3);font-size:15px}
+
+/* ================= 圆形图标九宫 ================= */
+.orbits{display:grid;grid-template-columns:repeat(5,1fr);gap:6px 2px;margin:2px 0 4px}
+.orb{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;padding:4px 0;
+  transition:transform .2s}
+.orb:active{transform:scale(.94)}
+.orb .disc{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;
+  background:radial-gradient(circle at 34% 28%,#FDFAF2,#EFE2C4);
+  border:1px solid var(--line2);box-shadow:0 2px 7px rgba(120,96,58,.14),inset 0 0 0 3px rgba(255,255,255,.6)}
+.orb .disc svg{width:23px;height:23px;stroke:var(--gold2);fill:none;stroke-width:1.45;
+  stroke-linecap:round;stroke-linejoin:round}
+.orb:nth-child(3n) .disc svg{stroke:var(--red2)}
+.orb:nth-child(4n) .disc svg{stroke:#7A6A3E}
+.orb .lb{font-size:10.5px;color:var(--ink2);letter-spacing:.4px;text-align:center;line-height:1.25}
+.orb.on .disc{background:linear-gradient(150deg,var(--red2),var(--red));border-color:#7E211B}
+.orb.on .disc svg{stroke:#FBEFD8}
+.orb.on .lb{color:var(--red)}
+
+/* ================= 路线条目 ================= */
+.rt{display:block;background:var(--card);border:1px solid var(--line);border-radius:12px;
+  margin-bottom:10px;overflow:hidden;cursor:pointer;transition:transform .2s,box-shadow .2s}
+.rt:active{transform:scale(.99)}
+.rt.dim{opacity:.62}
+.rt.dim:active{opacity:1}
+.rt .ph{position:relative;height:104px;overflow:hidden;background:#3a2c1c}
+.rt .ph img{width:100%;height:100%;object-fit:cover}
+.rt .ph .ov{position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(16,11,6,.06),rgba(16,11,6,.72))}
+.rt .ph .ttl{position:absolute;left:13px;right:13px;bottom:10px;color:#FDF6E7}
+.rt .ph .ttl b{font-family:var(--serif);font-size:16.5px;font-weight:600;letter-spacing:1.6px;
+  display:block;text-shadow:0 1px 8px rgba(0,0,0,.6)}
+.rt .ph .ttl span{font-size:10.5px;color:rgba(253,246,231,.82)}
+.rt .ph .seal-sm{position:absolute;right:11px;top:11px}
+.rt .bd{padding:11px 13px 12px}
+.rt .flow{font-size:11.5px;color:var(--ink2);line-height:1.8}
+.rt .flow b{color:var(--red);font-weight:600}
+.rt .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px;padding-top:9px;
+  border-top:1px dashed var(--line)}
+.tg{font-family:var(--mono);font-size:9.5px;padding:2.5px 8px;border-radius:3px;
+  background:var(--card2);color:var(--gold2);border:1px solid var(--line);font-variant-numeric:tabular-nums}
+.tg.r{background:rgba(158,43,37,.09);color:var(--red);border-color:rgba(158,43,37,.24)}
+.tg.g{background:rgba(90,124,74,.1);color:#4E6B3E;border-color:rgba(90,124,74,.26)}
+.tg.b{background:rgba(62,102,128,.1);color:#3A6480;border-color:rgba(62,102,128,.26)}
+
+/* ================= 实景图集 ================= */
+.gal{display:flex;gap:9px;overflow-x:auto;padding:2px 16px 6px;margin:0 -16px;
+  scroll-snap-type:x mandatory;scrollbar-width:none}
+.gal::-webkit-scrollbar{display:none}
+.gi{position:relative;flex:0 0 168px;height:118px;border-radius:10px;overflow:hidden;
+  border:1px solid var(--line2);scroll-snap-align:start;background:#2b2115;cursor:pointer}
+.gi img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .45s}
+.gi:active img{transform:scale(1.05)}
+.gi .cap{position:absolute;left:0;right:0;bottom:0;padding:16px 9px 8px;color:#FDF6E7;
+  background:linear-gradient(180deg,transparent,rgba(14,10,6,.82))}
+.gi .cap b{font-family:var(--serif);font-size:12px;font-weight:600;letter-spacing:.8px;
+  display:block;text-shadow:0 1px 6px rgba(0,0,0,.6)}
+.gi .cap span{font-size:9px;color:rgba(253,246,231,.78)}
+
+/* ================= 一日/三日/七日 主题卡 ================= */
+.lanes{display:flex;gap:10px;margin-bottom:4px}
+.lane{position:relative;flex:1;height:158px;border-radius:12px;overflow:hidden;cursor:pointer;
+  border:1.5px solid var(--line2);background:#2b2115;transition:transform .22s,box-shadow .25s}
+.lane:active{transform:scale(.975)}
+.lane img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+  transition:transform .5s,filter .3s}
+.lane .sh{position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(14,10,6,.42) 0%,rgba(14,10,6,.10) 38%,rgba(12,8,5,.90) 100%)}
+.lane .bd{position:absolute;left:0;right:0;bottom:0;padding:10px 11px 11px;color:#FDF6E7}
+.lane .dy{font-family:var(--serif);font-size:20px;font-weight:600;letter-spacing:2px;
+  text-shadow:0 2px 10px rgba(0,0,0,.75)}
+.lane .sb{font-size:9.5px;color:rgba(253,246,231,.86);margin-top:2px;letter-spacing:.4px}
+.lane .gk{font-size:9px;color:rgba(253,246,231,.76);margin-top:7px;line-height:1.5;
+  border-top:1px solid rgba(224,196,140,.34);padding-top:6px}
+.lane .pr{font-family:var(--mono);font-size:11.5px;font-weight:700;color:#F2CE86;margin-top:5px;
+  font-variant-numeric:tabular-nums;letter-spacing:-.2px}
+.lane .pr small{font-size:8.5px;font-weight:400;color:rgba(253,246,231,.72);font-family:var(--sans);
+  margin-left:2px;letter-spacing:0}
+.lane .sealm{position:absolute;right:7px;top:7px;width:26px;height:26px;border-radius:4px;
+  background:rgba(158,43,37,.94);color:#F6E8CE;font-family:var(--serif);font-size:8.5px;
+  display:grid;place-items:center;letter-spacing:.5px;box-shadow:inset 0 0 0 1px rgba(246,232,206,.5)}
+.lane.on{border-color:var(--gold);box-shadow:0 0 0 2px rgba(197,160,89,.34),0 6px 18px -6px rgba(120,86,30,.5)}
+.lane.on img{transform:scale(1.06)}
+.lane.on .dy{color:#FBE7B8}
+
+/* 路线档位小标题 */
+.rgrp{display:flex;align-items:center;gap:8px;margin:12px 0 8px}
+.rgrp .d{font-family:var(--serif);font-size:12.5px;letter-spacing:1.6px;color:var(--ink);
+  background:var(--card2);border:1px solid var(--line2);border-radius:4px;padding:3px 9px;white-space:nowrap}
+.rgrp .n{font-size:9.5px;color:var(--ink3);font-family:var(--mono)}
+.rgrp .ln{flex:1;height:1px;background:var(--line)}
+
+/* ================= 分档 ================= */
+.segs{display:flex;background:var(--card2);border:1px solid var(--line2);border-radius:8px;
+  padding:3px;gap:3px;margin-bottom:13px}
+.segs button{flex:1;border:none;background:none;font-family:var(--serif);font-size:13px;
+  letter-spacing:1.5px;color:var(--ink2);padding:8px 4px;border-radius:6px;cursor:pointer;
+  transition:all .22s}
+.segs button.on{background:linear-gradient(160deg,var(--red2),var(--red));color:#FBEFD8;
+  box-shadow:0 2px 8px rgba(158,43,37,.28)}
+.segs.gold button.on{background:linear-gradient(160deg,#D9BC7A,var(--gold));color:#463516}
+
+/* ================= 城市筛选 ================= */
+.citybar{display:flex;gap:7px;overflow-x:auto;padding:2px 16px 4px;scrollbar-width:none}
+.citybar::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;font-family:var(--serif);font-size:12.5px;letter-spacing:1px;padding:6px 14px;
+  border-radius:4px;border:1px solid var(--line2);background:var(--card);color:var(--ink2);
+  cursor:pointer;transition:all .2s;white-space:nowrap}
+.chip.on{background:var(--ink);color:#F5EFE1;border-color:var(--ink)}
+
+/* ================= 景点条目 ================= */
+.spot{display:flex;align-items:center;gap:11px;background:var(--card);border:1px solid var(--line);
+  border-radius:10px;padding:10px 12px;margin-bottom:8px;cursor:pointer;transition:all .2s}
+.spot:active{transform:scale(.99)}
+.spot.in{border-color:var(--red);background:linear-gradient(100deg,rgba(158,43,37,.055),var(--card))}
+.spot .disc{width:36px;height:36px;border-radius:50%;flex:0 0 auto;display:grid;place-items:center;
+  background:radial-gradient(circle at 34% 28%,#FDFAF2,#EFE2C4);border:1px solid var(--line2)}
+.spot .disc svg{width:20px;height:20px;stroke:var(--gold2);fill:none;stroke-width:1.45;
+  stroke-linecap:round;stroke-linejoin:round}
+.spot.in .disc{background:linear-gradient(150deg,var(--red2),var(--red));border-color:#7E211B}
+.spot.in .disc svg{stroke:#FBEFD8}
+.spot .info{flex:1;min-width:0}
+.spot .nm{display:block;font-size:12.5px;font-weight:600;line-height:1.45;letter-spacing:.3px}
+.spot .meta{display:block;font-size:9.5px;color:var(--ink3);margin-top:3px;font-family:var(--mono);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.spot .add{flex:0 0 auto;width:26px;height:26px;border-radius:4px;border:1px solid var(--line2);
+  background:var(--card);display:grid;place-items:center;font-size:15px;color:var(--red);
+  line-height:1;font-family:var(--serif)}
+.spot.in .add{background:var(--red);color:#F5EFE1;border-color:var(--red)}
+
+/* ================= 已选行程 ================= */
+.plan{border:1px solid var(--line2);border-radius:11px;background:var(--card);overflow:hidden;
+  margin-bottom:10px}
+.plan-head{background:linear-gradient(100deg,var(--card2),#F7F0DF);padding:9px 13px;
+  display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line)}
+.plan-head .d{font-family:var(--serif);font-size:13px;letter-spacing:1.6px;color:var(--ink)}
+.plan-head .h{font-family:var(--mono);font-size:9.5px;color:var(--ink3)}
+.item{display:flex;align-items:center;gap:9px;padding:9px 12px;border-bottom:1px dashed var(--line)}
+.item:last-child{border-bottom:none}
+.item .no{width:19px;height:19px;border-radius:3px;background:var(--ink);color:var(--goldlt);
+  font-family:var(--mono);font-size:10px;display:grid;place-items:center;flex:0 0 auto}
+.item .tx{flex:1;min-width:0;font-size:12px;line-height:1.4}
+.item .tx span{display:block;font-size:9.5px;color:var(--ink3);font-family:var(--mono);margin-top:2px}
+.item .del{border:none;background:none;color:var(--ink3);font-size:14px;cursor:pointer;padding:0 3px}
+.item .del:active{color:var(--red)}
+.empty{padding:34px 16px;text-align:center;color:var(--ink3);font-size:12px;line-height:2}
+.empty .em{display:block;width:52px;height:52px;margin:0 auto 12px;opacity:.5}
+.empty .em svg{width:100%;height:100%;stroke:var(--line2);fill:none;stroke-width:1.2;
+  stroke-linecap:round;stroke-linejoin:round}
+
+/* ================= 数据块 ================= */
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.kpi{position:relative;background:var(--card);border:1px solid var(--line);border-radius:11px;
+  padding:11px 12px;overflow:hidden}
+.kpi::after{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--gold)}
+.kpi.r::after{background:var(--red)}
+.kpi.g::after{background:#5A7C4A}
+.kpi.b::after{background:#3E6680}
+.kpi .k{font-family:var(--serif);font-size:10.5px;letter-spacing:1.4px;color:var(--ink3)}
+.kpi .v{font-size:20px;font-weight:700;margin-top:4px;font-variant-numeric:tabular-nums;
+  letter-spacing:-.4px;font-family:var(--serif)}
+.kpi .v small{font-size:10.5px;font-weight:600;color:var(--ink3);margin-left:2px;font-family:var(--sans)}
+.kpi .d{font-size:9.5px;color:var(--ink3);margin-top:3px}
+.bars{display:flex;flex-direction:column;gap:9px}
+.bar{display:grid;grid-template-columns:74px 1fr 62px;align-items:center;gap:9px;font-size:11px;
+  color:var(--ink2)}
+.bar .tk{display:block;height:8px;background:var(--card2);border-radius:4px;overflow:hidden}
+.bar .fl{display:block;height:100%;width:0;border-radius:4px;
+  background:linear-gradient(90deg,#D9BC7A,var(--gold))}
+.bar.r .fl{background:linear-gradient(90deg,#C9605A,var(--red))}
+.bar.g .fl{background:linear-gradient(90deg,#8FB07A,#5A7C4A)}
+.bar.b .fl{background:linear-gradient(90deg,#84AECB,#3E6680)}
+.bar .vl{font-family:var(--mono);text-align:right;color:var(--gold2);font-weight:600;
+  font-variant-numeric:tabular-nums;font-size:10.5px}
+.strip{display:flex;height:14px;border-radius:4px;overflow:hidden;margin:6px 0 12px;
+  border:1px solid var(--line2)}
+.strip i{display:block;height:100%;transition:width .8s}
+.legend{display:flex;flex-direction:column;gap:7px}
+.lg{display:flex;align-items:center;gap:9px;font-size:11.5px;color:var(--ink2)}
+.lg .sw{width:9px;height:9px;border-radius:2px;flex:0 0 auto;box-shadow:inset 0 0 0 1px rgba(0,0,0,.1)}
+.lg .nm{flex:1}
+.lg .vl{font-family:var(--mono);font-size:10.5px;color:var(--ink3)}
+
+/* ================= 表格 ================= */
+table.tb{width:100%;border-collapse:collapse;font-size:11px}
+table.tb th{background:linear-gradient(100deg,#4A3A26,#3A2D20);color:var(--goldlt);text-align:left;
+  padding:8px;font-family:var(--serif);font-size:10.5px;letter-spacing:1.2px;font-weight:600}
+table.tb td{padding:8px;border-bottom:1px solid var(--line);line-height:1.55;color:var(--ink2)}
+table.tb tr:nth-child(2n) td{background:rgba(241,231,210,.5)}
+table.tb td.n{font-family:var(--mono);text-align:right;font-variant-numeric:tabular-nums;
+  color:var(--red);font-weight:600}
+
+/* ================= 文物 ================= */
+.relics{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.relic{position:relative;background:var(--card);border:1px solid var(--line2);border-radius:10px;
+  padding:0 8px 12px;text-align:center;overflow:hidden}
+.relic::before{content:"";position:absolute;inset:5px;border:1px solid var(--goldlt);
+  border-radius:6px;pointer-events:none;z-index:4}
+.relic .mt{display:block;width:26px;height:26px;margin:0 auto 7px;color:var(--gold2)}
+.relic .nm{padding:0 2px}
+.relic .mt svg{width:100%;height:100%;stroke:currentColor;fill:none;stroke-width:1.3;
+  stroke-linecap:round;stroke-linejoin:round}
+.relic .nm{display:block;font-family:var(--serif);font-size:11.5px;font-weight:600;letter-spacing:.6px;line-height:1.4}
+.relic .ds{display:block;font-size:8.5px;color:var(--ink3);margin-top:5px;line-height:1.5}
+.relic .stamp{position:absolute;right:6px;top:6px;font-family:var(--serif);font-size:8.5px;
+  color:#FBEFD8;background:var(--seal);border-radius:3px;padding:2px 5px;letter-spacing:1px}
+.relic .rph{position:relative;display:block;height:92px;margin:0 -8px 9px;overflow:hidden}
+.relic .rph img{width:100%;height:100%;object-fit:cover;display:block}
+.relic .rph::after{content:"";position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(14,10,6,.42),rgba(14,10,6,.06) 46%,rgba(14,10,6,.34))}
+.relic .rmt{position:absolute;left:8px;bottom:7px;width:21px;height:21px;z-index:3;
+  color:#FBF2DE;filter:drop-shadow(0 1px 4px rgba(0,0,0,.85))}
+.relic .rmt svg{width:100%;height:100%;stroke:currentColor;fill:none;stroke-width:1.6;
+  stroke-linecap:round;stroke-linejoin:round}
+.relic .stamp{z-index:3}
+.relic.r .mt{color:var(--red2)}
+
+/* ================= 步进器 ================= */
+.stepper{display:grid;grid-template-columns:1fr 1fr 1.15fr;gap:9px;margin-bottom:4px}
+.step{background:var(--card);border:1px solid var(--line2);border-radius:10px;padding:10px 11px}
+.step .lb{font-family:var(--serif);font-size:10.5px;letter-spacing:1.3px;color:var(--ink3)}
+.step .ctrl{display:flex;align-items:center;justify-content:space-between;margin-top:7px}
+.step .ctrl button{width:24px;height:24px;border-radius:4px;border:1px solid var(--line2);
+  background:var(--card2);color:var(--red);font-size:14px;line-height:1;display:grid;place-items:center;
+  cursor:pointer;font-family:var(--serif)}
+.step .ctrl button:active{background:var(--red);color:#F5EFE1;border-color:var(--red)}
+.step .num{font-family:var(--serif);font-size:17px;font-weight:600;font-variant-numeric:tabular-nums}
+.step .num small{font-size:10px;font-weight:400;color:var(--ink3);margin-left:1px}
+.step .budget{font-family:var(--serif);font-size:16px;font-weight:600;color:var(--red);
+  font-variant-numeric:tabular-nums;margin-top:7px}
+
+/* ================= 清单 ================= */
+.ck{display:flex;align-items:flex-start;gap:11px;padding:9px 2px;border-bottom:1px dashed var(--line)}
+.ck:last-child{border-bottom:none}
+.ck .bx{width:19px;height:19px;border-radius:3px;border:1.4px solid var(--line2);flex:0 0 auto;
+  margin-top:1px;display:grid;place-items:center;cursor:pointer;background:var(--card);
+  transition:all .2s}
+.ck .bx.on{background:var(--red);border-color:var(--red)}
+.ck .bx.on::after{content:"✓";color:#F5EFE1;font-size:11px;font-weight:700}
+.ck .tx{font-size:11.5px;line-height:1.65;color:var(--ink2)}
+.ck .bx.on + .tx{color:var(--ink3);text-decoration:line-through}
+
+/* ================= 底部按钮 / 提示 ================= */
+.fab{position:absolute;right:16px;bottom:84px;z-index:70;border:1px solid #7E211B;border-radius:6px;
+  padding:12px 20px;font-family:var(--serif);font-size:13.5px;letter-spacing:2px;
+  background:linear-gradient(160deg,var(--red2),var(--red));color:#FBEFD8;cursor:pointer;
+  box-shadow:0 10px 24px -8px rgba(120,32,26,.75);display:flex;align-items:center;gap:7px}
+.fab .ic{width:16px;height:16px;stroke:#FBEFD8;fill:none;stroke-width:1.6;stroke-linecap:round}
+.fab:active{transform:scale(.97)}
+.toast{position:absolute;left:50%;bottom:150px;transform:translate(-50%,18px);z-index:95;
+  background:rgba(58,45,32,.95);color:#F5EFE1;font-size:11.5px;padding:10px 18px;border-radius:5px;
+  border:1px solid rgba(224,196,140,.4);opacity:0;transition:all .28s;pointer-events:none;
+  white-space:nowrap;max-width:88%;font-family:var(--serif);letter-spacing:.6px}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+
+/* ================= Tab 栏 ================= */
+.tabbar{flex:0 0 auto;position:relative;display:flex;align-items:stretch;
+  background:linear-gradient(180deg,#FBF7ED,#F2E9D6);border-top:1px solid var(--line2);
+  padding:7px 4px 10px;z-index:60}
+.tabbar::before{content:"";position:absolute;left:0;right:0;top:2px;height:1px;
+  background:linear-gradient(90deg,transparent,var(--goldlt) 20%,var(--goldlt) 80%,transparent)}
+.tab{flex:1;border:none;background:none;display:flex;flex-direction:column;align-items:center;gap:4px;
+  padding:6px 2px 4px;border-radius:6px;cursor:pointer;color:var(--ink3);
+  font-family:var(--serif);font-size:10.5px;letter-spacing:1.2px;transition:all .22s}
+.tab svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.35;
+  stroke-linecap:round;stroke-linejoin:round}
+.tab.active{color:var(--red)}
+.tab.active svg{stroke-width:1.7}
+.tab.active span{font-weight:600}
+.homebar{position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:112px;height:4px;
+  border-radius:3px;background:rgba(58,45,32,.26)}
+
+@media (max-width:520px){
+  body{padding:0}
+  .phone{width:100vw;height:100vh;border-radius:0;padding:0;box-shadow:none}
+  .screen{border-radius:0}.notch{display:none}
+  .statusbar{height:58px;padding:14px 18px 0 20px}
+  .view{padding-top:58px}
+  .carousel{height:calc(100vw * .64)}
+}
+</style>
+</head>
+<body>
+<div class="phone"><div class="screen">
+  <div class="notch"></div>
+
+  <div class="statusbar on-dark" id="sb">
+    <div class="sb-l">
+      <span class="sb-time" id="sbTime">--:--</span>
+      <span class="sig"><i></i><i></i><i></i><i></i></span>
+      <svg class="wifi" viewBox="0 0 14 11"><path class="a1" d="M1.5 3.6a9.6 9.6 0 0 1 11 0"/><path class="a2" d="M3.6 6a6.3 6.3 0 0 1 6.8 0"/><path class="a3" d="M5.7 8.3a3.1 3.1 0 0 1 2.6 0"/></svg>
+    </div>
+    <div class="sb-r">
+      <span class="bat" id="bat"><span class="bat-pct" id="batPct">--%</span>
+        <span class="bat-shell"><span class="bat-fill" id="batFill"></span>
+          <svg class="bolt" viewBox="0 0 10 10"><path d="M6.2.6L1.9 5.5h2.6L3.8 9.4l4.3-4.9H5.5z"/></svg>
+        </span>
+      </span>
+    </div>
+  </div>
+
+  <div class="views" id="views">
+
+    <!-- ============ 推荐 ============ -->
+    <section class="view active" id="v-rec">
+      <div class="collab" id="collabBar">
+        <span class="dot" id="cDot"></span>
+        <span class="rm" id="cRoom">单机</span>
+        <span class="who" id="cWho"></span>
+        <span class="sp"></span>
+        <span class="st" id="cStat">离线</span>
+      </div>
+      <div class="carousel" id="carousel">
+        <div class="slides" id="slides"></div>
+        <div class="grain"></div>
+        <div class="dots" id="dots"></div>
+      </div>
+
+      <div class="wrap" style="margin-top:-14px;position:relative;z-index:6">
+        <div class="today">
+          <div class="hd">
+            <div>
+              <h3 id="todayTitle">今日开拔</h3>
+              <div class="date" id="todayDate">—</div>
+            </div>
+            <div class="seal" id="todaySeal">蜀<br>迹</div>
+          </div>
+          <svg class="clouds" width="132" height="76" viewBox="0 0 132 76" aria-hidden="true">
+            <path d="M0 62h132M8 54h116" stroke="#D8C49A" stroke-width="1.4" fill="none"/>
+            <path d="M18 54c0-6 5-10 11-10 2-7 9-11 16-9 5-8 17-8 22 0 7-2 14 2 16 9 6 0 11 4 11 10z"
+                  fill="#E4D2AB" opacity=".85"/>
+            <path d="M76 54c0-5 4-8 9-8 2-6 8-9 13-7 4-6 13-6 17 0 5-1 11 2 12 7 5 0 8 3 8 8z"
+                  fill="#D9C49B" opacity=".8"/>
+          </svg>
+          <div class="row">
+            <div class="tile red" data-go="diy">
+              <div class="tt">规划行程</div>
+              <div class="st">自由拼路线<br><em>门票按学生半价算</em></div>
+            </div>
+            <div class="tile photo" data-go="cost">
+              <img src="assets/tile_city.jpg" alt="">
+              <div class="in">
+                <div class="tt">费用测算</div>
+                <div class="st">六项成本拆到人<br>报价毛利率 <em>13%</em></div>
+              </div>
+            </div>
+          </div>
+          <div class="go" data-go="diy">
+            <span class="ic" id="goIcon"></span>
+            <span>规划我的行程 · 一步到人</span>
+            <span class="arw">›</span>
+          </div>
+        </div>
+
+        <div class="sec">
+          <span class="t">按天数挑</span><span class="orn"></span>
+          <span class="tiny">点一张即看该档全部路线</span>
+        </div>
+        <div class="lanes" id="lanes"></div>
+
+        <div class="sec">
+          <span class="t">精选路线</span><span class="orn"></span>
+          <span class="tiny" id="recHint"></span>
+        </div>
+        <div id="recList"></div>
+        <div class="tiny" style="text-align:center;padding:4px 0 10px">
+          价格为 6 人成团人均预算 · 全部线路均在四川省内
+        </div>
+
+        <div class="sec">
+          <span class="t">此刻四川</span><span class="orn"></span>
+          <span class="tiny">实景拍摄</span>
+        </div>
+        <div class="gal" id="gallery"></div>
+
+        <div class="sec">
+          <span class="t">寻迹四川</span><span class="orn"></span>
+          <span class="more" data-go="me" data-scroll="relicList">全部</span>
+        </div>
+        <div class="orbits" id="orbits"></div>
+      </div>
+      <div style="height:14px"></div>
+    </section>
+
+    <!-- ============ 规划 ============ -->
+    <section class="view" id="v-diy">
+      <div class="wrap" style="padding-top:74px">
+        <div class="sec" style="margin-top:0">
+          <span class="t">自定行程</span><span class="orn"></span>
+        </div>
+        <div class="stepper">
+          <div class="step">
+            <div class="lb">行程天数</div>
+            <div class="ctrl"><button data-act="day-">−</button><span class="num" id="dayNum">3<small>天</small></span><button data-act="day+">+</button></div>
+          </div>
+          <div class="step">
+            <div class="lb">出行人数</div>
+            <div class="ctrl"><button data-act="ppl-">−</button><span class="num" id="pplNum">6<small>人</small></span><button data-act="ppl+">+</button></div>
+          </div>
+          <div class="step">
+            <div class="lb">预算 / 人</div>
+            <div class="budget" id="budgetNum">¥0</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="citybar" id="cityBar"></div>
+
+      <div class="wrap" style="padding-top:6px">
+        <div class="sec"><span class="t">可选景点</span><span class="orn"></span>
+          <span class="tiny" id="spotCount"></span></div>
+        <div id="spotList"></div>
+
+        <div class="sec"><span class="t">我的行程</span><span class="orn"></span>
+          <span class="tiny" id="itemCount"></span></div>
+        <div id="planList"></div>
+        <div style="height:62px"></div>
+      </div>
+      <button class="fab" id="fabCalc">
+        <svg class="ic" viewBox="0 0 24 24"><path d="M12 3v18"/><path d="M16.5 7.5c0-1.8-2-3-4.5-3s-4.5 1.2-4.5 3 2 2.7 4.5 3.3 4.5 1.5 4.5 3.3-2 3-4.5 3-4.5-1.2-4.5-3"/></svg>
+        算算多少钱
+      </button>
+    </section>
+
+    <!-- ============ 花费 ============ -->
+    <section class="view" id="v-cost">
+      <div class="wrap" style="padding-top:74px">
+        <div class="sec" style="margin-top:0"><span class="t">费用测算</span><span class="orn"></span></div>
+        <div class="segs gold" id="costSegs">
+          <button data-src="diy">我的行程</button>
+          <button class="on" data-src="rec">推荐路线</button>
+        </div>
+        <div id="costBody"></div>
+        <div style="height:10px"></div>
+      </div>
+    </section>
+
+    <!-- ============ 行囊 ============ -->
+    <section class="view" id="v-list">
+      <div class="wrap" style="padding-top:74px">
+        <div class="sec" style="margin-top:0"><span class="t">出行行囊</span><span class="orn"></span>
+          <span class="tiny" id="ckHead"></span></div>
+        <div id="listBody"></div>
+        <div style="height:10px"></div>
+      </div>
+    </section>
+
+    <!-- ============ 我的 ============ -->
+    <section class="view" id="v-me">
+      <div class="wrap" style="padding-top:74px">
+        <div class="card" style="display:flex;align-items:center;gap:13px;padding:15px 14px">
+          <div class="seal" style="width:46px;height:46px;font-size:13px">蜀<br>迹</div>
+          <div style="flex:1">
+            <div style="font-family:var(--serif);font-size:16px;font-weight:600;letter-spacing:1.6px">蜀迹 · 行程簿</div>
+            <div class="tiny" style="margin-top:4px">四川旅游规划 · 单文件离线版</div>
+          </div>
+        </div>
+
+        <div class="sec"><span class="t">保存的路线</span><span class="orn"></span>
+          <span class="tiny" id="meCount"></span></div>
+        <div id="meBody"></div>
+
+        <div class="sec"><span class="t">蜀地名胜</span><span class="orn"></span><span class="tiny">实景图谱</span></div>
+        <div class="relics" id="relicList"></div>
+
+        <div class="sec"><span class="t">多人协作</span><span class="orn"></span>
+          <span class="tiny" id="cMode"></span></div>
+        <div class="card">
+          <div id="cSetup">
+            <div class="tiny" style="line-height:1.75;margin-bottom:10px">
+              和小组成员一起改同一条路线，改动实时同步。填个名字和房间号即可。
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:9px">
+              <div class="step" style="padding:9px 10px">
+                <div class="lb">我的名字</div>
+                <input id="cName" maxlength="16" placeholder="如 李昊然"
+                  style="width:100%;border:none;background:none;font-family:var(--serif);
+                         font-size:14px;color:var(--ink);margin-top:6px;outline:none">
+              </div>
+              <div class="step" style="padding:9px 10px">
+                <div class="lb">房间号</div>
+                <input id="cRoomIn" maxlength="12" placeholder="如 ABCD"
+                  style="width:100%;border:none;background:none;font-family:var(--mono);
+                         font-size:14px;color:var(--red);margin-top:6px;outline:none;
+                         text-transform:uppercase">
+              </div>
+            </div>
+            <div class="step" style="padding:9px 10px;margin-bottom:9px">
+              <div class="lb">房间密码（房间没设密码就留空）</div>
+              <input id="cPw" type="password" maxlength="64" placeholder="有密码才填"
+                style="width:100%;border:none;background:none;font-family:var(--mono);
+                       font-size:13px;color:var(--ink);margin-top:6px;outline:none">
+              <div class="tiny" style="margin-top:6px;line-height:1.6">
+                想让某人是只读，就把密码给他时加前缀：<br>
+                <span style="font-family:var(--mono);color:var(--red)">host:</span> 主持人 ·
+                <span style="font-family:var(--mono);color:var(--red)">edit:</span> 可编辑 ·
+                <span style="font-family:var(--mono);color:var(--red)">view:</span> 只读
+              </div>
+            </div>
+            <div class="step" style="padding:9px 10px;margin-bottom:9px">
+              <div class="lb">后端地址（留空 = 与页面同源）</div>
+              <input id="cBackend" placeholder="如 shuji-collab.onrender.com"
+                style="width:100%;border:none;background:none;font-family:var(--mono);
+                       font-size:12px;color:var(--ink2);margin-top:6px;outline:none">
+            </div>
+            <button class="fab" id="cJoin"
+              style="position:static;width:100%;justify-content:center">加入协作房间</button>
+          </div>
+          <div id="cLive" style="display:none">
+            <div style="display:flex;align-items:center;gap:9px;margin-bottom:10px">
+              <span class="dot" id="cDot2"
+                style="width:8px;height:8px;border-radius:50%;background:#6FB98F;flex:0 0 auto"></span>
+              <div style="flex:1">
+                <div style="font-family:var(--serif);font-size:14px;font-weight:600;
+                            letter-spacing:1.2px" id="cRoomName">房间</div>
+                <div class="tiny" style="margin-top:3px" id="cState"></div>
+              </div>
+              <button class="chip" id="cLeave" style="font-size:11px">退出</button>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+              <span id="cRole" style="font-family:var(--serif);font-size:11px;
+                padding:2px 9px;border-radius:20px;background:var(--card2);
+                border:1px solid var(--line2);color:var(--ink)">可编辑</span>
+              <span class="tiny" id="cLockHint"></span>
+              <span style="flex:1"></span>
+              <button class="chip" id="cSetPw" style="font-size:11px">设置密码</button>
+            </div>
+            <div class="tiny" style="margin-bottom:6px">在线成员</div>
+            <div class="peers" id="cPeers" style="margin-bottom:12px"></div>
+            <div class="tiny" style="margin-bottom:4px">协作记录</div>
+            <div id="cLog"></div>
+            <div class="tiny" style="margin-top:12px;line-height:1.7">
+              把这页地址发给他们即可加入：<br>
+              <span style="font-family:var(--mono);color:var(--red);word-break:break-all"
+                id="cInvite"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="sec"><span class="t">局域网共享</span><span class="orn"></span>
+          <span class="tiny">手机扫码打开</span></div>
+        <div class="card" style="display:flex;align-items:center;gap:14px">
+          <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAUoAAAFKCAAAAABeQknZAAAEUklEQVR4nO3dQY6bMABA0bjq/a9Md50uELLlP8BU761Gk0CiL2dhYcw4PjR+RedByo5RmZEyI2VGyoyUGSkzUmakzEiZkTIjZUbKjJQZKTNSZqTMSJmRMiNlRsqMlBkpM1JmpMxImZEyI2VGyoyUGSkzUmakzEiZkTIjZUbKjJSZ37NvHMnHHZfnm72HaEweUX/na0ZlRsqMlBkpM1JmpMxImZEyI+X9s50v6/sajG87y9mrxw2fdsaozEiZkTIjZUbKjJQZKTNSZqR8crYzOyM4Jo89NuYas1d5Zs+8s0OdUZmRMiNlRsqMlBkpM1JmpMxI+Y7ZTmNMXpUZl/9bn/fUjMqMlBkpM1JmpMxImZEyI2VGyv9pttPcZ/P8c4OMyoyUGSkzUmakzEiZkTIjZUbKd8x2dmYYx/KatvUrP9efWzMqM1JmpMxImZEyI2VGyoyUGSmfnO00O52NjRlLfbdOw6jMSJmRMiNlRsqMlBkpM1JmpMyM51eAjY3rPWfct/Pj+YFnpMxImZEyI2VGyoyUGSnvn+3MXh054us4O9+qeRqP5+3czg88I2VGyoyUGSkzUmakzEj5ttnOcXlEsy6teWrPtZ05mFGZkTIjZUbKjJQZKTNSZqTMSPnePdnG8t7Rs/OKs2Prz/W8nVfwA89ImZEyI2VGyoyUGSkzUt4/27m+ejNO3nf9v+ZK0s5TSOtrRUZlRsqMlBkpM1JmpMxImZEyI+X9s52d9WZj48zrM5trs88oPfsG14zKjJQZKTNSZqTMSJmRMiNlRsp3XNt5054Dx+Srs/OZ9bmVUZmRMiNlRsqMlBkpM1JmpMxI+eQO1OtPAx3J/+7Ym2DnM4zKjJQZKTNSZqTMSJmRMiNlRsq3rWQbk0esr3P7bMyt1o+dffWMUZmRMiNlRsqMlBkpM1JK+T5G5TueLrqzKuxYfl9z3846s53b+YFnpMxImZEyI2VGyoyUGSnfsQP1+t7RO3sTzM57vu/pPteMyoyUGSkzUmakzEiZkTIjZUbKJ1ey7Ti+bT4zu5bu+ogdRmVGyoyUGSkzUmakzEiZkTIj5ZPXdnb2Nbi2fqdPs0/b+pnPGJUZKTNSZqTMSJmRMiNlRsqMlO9YyVavKBuXr66fed3OntpGZUbKjJQZKTNSZqTMSJmRMiPlO2Y7jZHsurazr0Gzps2ozEiZkTIjZUbKjJQZKTNSZqT8n2Y7nxt2Xbu+fnR9xCyjMiNlRsqMlBkpM1JmpMxImZHyZ+3J9klWo62vLZu9b2fnbp0vRmVGyoyUGSkzUmakzEiZkTIj5ZOzneYKzPj7V/PEn/Vd12afdOq+ndv5gWekzEiZkTIjZUbKjJQZKd/xdFH+ZVRmpMxImZEyI2VGSinfx6jMSJmRMiNlRsqMlBkpM1JmpMxImZEyI2VGyoyUGSkzUmakzEiZkTIjZUbKjJQZKTNSZqTMSJmRMiNlRsqMlBkpM1J+Kn8AsLWDsi1G+wgAAAAASUVORK5CYII=" alt="局域网二维码"
+               style="width:104px;height:104px;flex:0 0 auto;border-radius:6px;
+                      border:1px solid var(--line2);background:#fff;padding:4px">
+          <div style="flex:1;min-width:0">
+            <div style="font-family:var(--serif);font-size:13px;font-weight:600;
+                        letter-spacing:1px">扫码在手机上打开</div>
+            <div class="tiny" style="margin-top:6px;line-height:1.7">
+              手机连同一个 WiFi，扫码即可访问。桌面端直接在浏览器打开下面这个地址：
+            </div>
+            <div class="tiny" style="font-family:var(--mono);color:var(--red);
+                        margin-top:7px;word-break:break-all">http://10.10.93.73:8080/</div>
+          </div>
+        </div>
+
+        <div class="sec"><span class="t">图片显示</span><span class="orn"></span></div>
+        <div class="card">
+          <div class="tiny" style="margin-bottom:10px;line-height:1.75">
+            首页轮播与「按天数挑」使用两种图源，可随时切换对比。
+          </div>
+          <div class="segs gold" id="srcSegs" style="margin-bottom:0">
+            <button data-src2="new" class="on">新找的实景</button>
+            <button data-src2="plan">方案里的实拍</button>
+          </div>
+        </div>
+
+        <div class="sec"><span class="t">关于</span><span class="orn"></span></div>
+        <div class="card">
+          <table class="tb">
+            <tr><th>项目</th><th>说明</th></tr>
+            <tr><td>景点库</td><td class="n">25 处</td></tr>
+            <tr><td>推荐路线</td><td class="n">8 条</td></tr>
+            <tr><td>费用模型</td><td class="n">六项拆分</td></tr>
+            <tr><td>门票口径</td><td class="n">在校生半价</td></tr>
+            <tr><td>数据范围</td><td class="n">四川省内</td></tr>
+          </table>
+          <div class="tiny" style="margin-top:10px;line-height:1.8">
+            里程按出发城市往返 + 山路系数 1.2 估算；包车按 6 人分摊 ¥0.45/km；
+            住宿取青旅床位与藏寨民宿实际价位。数据为 2025 年平季询价，实际以出发前报价为准。
+          </div>
+        </div>
+        <div style="height:10px"></div>
+      </div>
+    </section>
+  </div>
+
+  <nav class="tabbar" id="tabbar">
+    <button class="tab active" data-v="rec"><svg viewBox="0 0 24 24"><path d="M12 2.6l2.7 5.5 6 .9-4.4 4.2 1.1 6-5.4-2.9-5.4 2.9 1.1-6L3.3 9l6-.9z"/></svg><span>推荐</span></button>
+    <button class="tab" data-v="diy"><svg viewBox="0 0 24 24"><path d="M12 3.5l2.6 4.5h-5.2z"/><path d="M12 20.5l-2.6-4.5h5.2z"/><path d="M3.5 12l4.5-2.6v5.2z"/><path d="M20.5 12l-4.5 2.6V9.4z"/><circle cx="12" cy="12" r="2.6"/></svg><span>规划</span></button>
+    <button class="tab" data-v="cost"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.2"/><rect x="9.2" y="9.2" width="5.6" height="5.6" rx=".8"/></svg><span>花费</span></button>
+    <button class="tab" data-v="list"><svg viewBox="0 0 24 24"><path d="M4.5 8.5h15l-1.2 11.5H5.7z"/><path d="M8.6 8.5V6.4a3.4 3.4 0 016.8 0v2.1"/><path d="M9.4 12.6h5.2"/></svg><span>行囊</span></button>
+    <button class="tab" data-v="me"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.2"/><path d="M5.6 20c0-3.6 2.9-6.4 6.4-6.4s6.4 2.8 6.4 6.4"/></svg><span>我的</span></button>
+    <div class="homebar"></div>
+  </nav>
+  <div class="toast" id="toast"></div>
+</div></div>
+
+<script>
+/* ==================================================================
+   传统纹样图标（线描 · 24x24）
+   ================================================================== */
+const MOTIF = {
+  pavilion:'<path d="M3 9.5h18M5 9.5 12 5l7 4.5"/><path d="M6.5 9.5v7M17.5 9.5v7M12 9.5v7"/><path d="M4 16.5h16M4 19.5h16M9.5 16.5v3M14.5 16.5v3"/>',
+  mountain:'<path d="M2 18.5l6-11 3.6 6.2L14 9l8 9.5z"/><path d="M6.6 12.6l1.4-1.1 1.5 1.2M14 13.4l1.2-1 1.3 1"/><path d="M2 18.5h20"/>',
+  water:'<path d="M2.5 9c2.6-2.4 5.2-2.4 7.8 0s5.2 2.4 7.8 0"/><path d="M2.5 13c2.6-2.4 5.2-2.4 7.8 0s5.2 2.4 7.8 0"/><path d="M2.5 17c2.6-2.4 5.2-2.4 7.8 0s5.2 2.4 7.8 0"/>',
+  people:'<circle cx="12" cy="8" r="3.2"/><path d="M5.6 20c0-3.6 2.9-6.4 6.4-6.4s6.4 2.8 6.4 6.4"/><path d="M9.2 20v-3M14.8 20v-3"/>',
+  vase:'<path d="M10 3h4M11 3v2.2c0 .8-2.6 1.9-2.6 5.3 0 2.6 1.5 3.4 1.5 6.1 0 2.4-1.2 3-1.2 4.4h6.6c0-1.4-1.2-2-1.2-4.4 0-2.7 1.5-3.5 1.5-6.1 0-3.4-2.6-4.5-2.6-5.3V3"/><path d="M9.4 12.4h5.2"/>',
+  ding:'<path d="M4.5 9.5h15l-1.4 8.5H5.9z"/><path d="M4.5 9.5c0-1.5 3.4-2.6 7.5-2.6s7.5 1.1 7.5 2.6"/><path d="M8 6.9V5M16 6.9V5M12 6.6V4.4"/><path d="M9.6 13v3M14.4 13v3"/>',
+  coin:'<circle cx="12" cy="12" r="8"/><rect x="9.2" y="9.2" width="5.6" height="5.6" rx=".8"/>',
+  scroll:'<path d="M6 4.5h11a2 2 0 012 2v13H8a2 2 0 01-2-2z"/><path d="M6 4.5a2 2 0 00-2 2v1.5h2z"/><path d="M9 9h7M9 12.5h7M9 16h4.5"/>',
+  bag:'<path d="M4.5 8.5h15l-1.2 11.5H5.7z"/><path d="M8.6 8.5V6.4a3.4 3.4 0 016.8 0v2.1"/><path d="M9.4 12.6h5.2"/>',
+  seal:'<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9.5h8M8 12.5h8M8 15.5h4.5"/>',
+  arch:'<path d="M4 20V10a8 8 0 0116 0v10"/><path d="M9 20v-9a3 3 0 016 0v9"/><path d="M2.5 20h19"/>',
+  bird:'<circle cx="12" cy="12" r="2.6"/><path d="M12 9.6c1.3-1.9 3.1-2.7 5-2.3-.9 1.8-2.4 2.9-4.3 3.2"/><path d="M14.4 12c1.9 1.3 2.7 3.1 2.3 5-1.8-.9-2.9-2.4-3.2-4.3"/><path d="M12 14.4c-1.3 1.9-3.1 2.7-5 2.3.9-1.8 2.4-2.9 4.3-3.2"/><path d="M9.6 12c-1.9-1.3-2.7-3.1-2.3-5 1.8.9 2.9 2.4 3.2 4.3"/>',
+  fan:'<path d="M12 20 3.6 9.4A10.5 10.5 0 0112 4.6a10.5 10.5 0 018.4 4.8z"/><path d="M12 20V4.6M12 20 6.2 8.2M12 20l5.8-11.8"/>',
+  mask:'<path d="M6 8.5c0-1.6 2.7-2.8 6-2.8s6 1.2 6 2.8v5c0 3.4-2.7 6.2-6 6.2s-6-2.8-6-6.2z"/><circle cx="9.6" cy="11" r="1.1"/><circle cx="14.4" cy="11" r="1.1"/><path d="M9.4 15.4c1.6.9 3.6.9 5.2 0"/>',
+  compass:'<circle cx="12" cy="12" r="8.2"/><path d="M9.2 9.2l5.6 2-2 5.6-2-5.6z"/><path d="M12 3.8v2M12 18.2v2M3.8 12h2M18.2 12h2"/>',
+  pattern:'<path d="M12 3.5l2.6 4.5h-5.2z"/><path d="M12 20.5l-2.6-4.5h5.2z"/><path d="M3.5 12l4.5-2.6v5.2z"/><path d="M20.5 12l-4.5 2.6V9.4z"/><circle cx="12" cy="12" r="2.6"/>',
+  bamboo:'<path d="M8 3v18M16 3v18"/><path d="M8 8h8M8 13h8M8 18h8"/>'
+};
+const CATMOTIF = {'景区':'pavilion','登山':'mountain','水':'water','人文':'scroll','city':'arch'};
+const ic = (m, cls) => '<svg class="' + (cls || '') + '" viewBox="0 0 24 24">' + (MOTIF[m] || MOTIF.pattern) + '</svg>';
+
+/* ==================================================================
+   景点库（四川省内）  pm = 成人票价，stu = 学生票比例，km = 距成都里程
+   ================================================================== */
+const SPOTS = [
+  {id:'panda', n:'成都大熊猫繁育研究基地', c:'成都', t:'景区', pm:55, stu:.5, h:3, tag:'学生票半价', best:'清晨看熊猫最活跃'},
+  {id:'wuhou', n:'武侯祠 · 锦里', c:'成都', t:'人文', pm:50, stu:.5, h:2.5, tag:'三国文化', best:'傍晚红灯笼亮起最出片'},
+  {id:'jinsha', n:'金沙遗址博物馆', c:'成都', t:'人文', pm:70, stu:.5, h:2.5, tag:'太阳神鸟', best:'看古蜀文明，室内不怕晒'},
+  {id:'kuanzhai', n:'宽窄巷子 · 人民公园', c:'成都', t:'city', pm:0, stu:1, h:3, tag:'免费', best:'盖碗茶 + 掏耳朵，最成都'},
+  {id:'dufu', n:'杜甫草堂', c:'成都', t:'人文', pm:50, stu:.5, h:2, tag:'学生票半价', best:'茅屋故居 + 竹林小径'},
+  {id:'dujiangyan', n:'都江堰水利工程', c:'都江堰', t:'人文', pm:80, stu:.5, h:3, km:60, tag:'两千年水利', best:'鱼嘴、飞沙堰、宝瓶口'},
+  {id:'qingcheng', n:'青城山（前山）', c:'都江堰', t:'登山', pm:80, stu:.5, h:4.5, km:68, tag:'道教名山', best:'石阶 2 小时登顶，森林覆盖率极高'},
+  {id:'hongkou', n:'虹口漂流', c:'都江堰', t:'水', pm:180, stu:1, h:3, km:72, tag:'7km 漂流', best:'5-10 月运营，含救生装备'},
+  {id:'balang', n:'巴朗山垭口 4487m', c:'阿坝', t:'登山', pm:0, stu:1, h:1, km:200, tag:'免费 · 高海拔', best:'川西第一观景垭口，停留不超 20 分钟'},
+  {id:'sgn_czg', n:'四姑娘山 · 长坪沟', c:'阿坝', t:'登山', pm:70, stu:.5, h:8, km:220, tag:'徒步 16-20km', best:'幺妹峰最佳视角，14:00 强制下撤'},
+  {id:'sgn_shuang', n:'四姑娘山 · 双桥沟', c:'阿坝', t:'景区', pm:80, stu:.5, h:4, km:220, tag:'观光车游', best:'全程坐车，适合体力一般'},
+  {id:'jiuzhaigou', n:'九寨沟', c:'阿坝', t:'景区', pm:169, stu:.5, h:8, km:440, tag:'世界遗产', best:'五花海、诺日朗瀑布，秋季彩林'},
+  {id:'huanglong', n:'黄龙风景区', c:'阿坝', t:'登山', pm:170, stu:.5, h:5, km:400, tag:'钙华彩池', best:'海拔 3500m+，索道上步行下'},
+  {id:'jiajin', n:'夹金山垭口 4114m', c:'甘孜', t:'登山', pm:0, stu:1, h:1, km:300, tag:'免费 · 红色地标', best:'红军长征翻越的第一座大雪山'},
+  {id:'danba', n:'丹巴 · 中路藏寨', c:'甘孜', t:'人文', pm:50, stu:1, h:4, km:350, tag:'中国最美乡村', best:'正对墨尔多神山，碉楼与梨树'},
+  {id:'dangling', n:'党岭村 · 葫芦海 4150m', c:'甘孜', t:'登山', pm:30, stu:1, h:9, km:420, tag:'往返 14km', best:'高山海子 + 雪山倒影，凌晨出发'},
+  {id:'wenquan', n:'党岭高原野温泉', c:'甘孜', t:'水', pm:0, stu:1, h:2, km:418, tag:'免费', best:'水温约 40℃，单次不超 15 分钟'},
+  {id:'luding', n:'泸定桥 · 大渡河峡谷', c:'甘孜', t:'人文', pm:10, stu:.5, h:1.5, km:280, tag:'红色地标', best:'大渡桥横铁索寒'},
+  {id:'tagong', n:'塔公草原 · 雅拉雪山', c:'甘孜', t:'景区', pm:0, stu:1, h:3, km:380, tag:'免费', best:'草原 + 寺庙 + 经幡 + 雪山同框'},
+  {id:'daocheng', n:'稻城亚丁', c:'甘孜', t:'登山', pm:146, stu:.5, h:8, km:800, tag:'蓝色星球最后一片净土', best:'牛奶海、五色海，海拔 4600m'},
+  {id:'mugecuo', n:'康定 · 木格措', c:'甘孜', t:'景区', pm:105, stu:.5, h:4, km:330, tag:'高原湖泊', best:'七色海 + 药池沸泉'},
+  {id:'leshan', n:'乐山大佛', c:'乐山', t:'人文', pm:80, stu:.5, h:3, km:150, tag:'世界遗产', best:'九曲栈道排队久，建议早去'},
+  {id:'emei', n:'峨眉山（金顶）', c:'乐山', t:'登山', pm:160, stu:.5, h:9, km:160, tag:'需住山上一晚', best:'金顶日出 + 云海 + 十方普贤'},
+  {id:'jiuding', n:'九皇山 · 藏羌风情', c:'绵阳', t:'景区', pm:90, stu:.5, h:4, km:190, tag:'索道 + 溶洞', best:'猿王洞、情人桥'},
+  {id:'xiling', n:'西岭雪山', c:'成都', t:'登山', pm:120, stu:.5, h:6, km:95, tag:'窗含西岭千秋雪', best:'索道直达日月坪，冬季滑雪'}
+];
+
+/* ==================================================================
+   推荐路线
+   ================================================================== */
+const ROUTES = {
+  1: [
+    {nm:'成都市内一日 · 烟火与古蜀', sub:'周末说走就走 · 地铁可达', ph:'tile_city.jpg',
+     flow:['熊猫基地','武侯祠锦里','宽窄巷子','杜甫草堂'],
+     tm:'约 10 小时', walk:'6-8km', tip:'全程地铁 + 步行，无门票以外的交通支出',
+     pts:['panda','wuhou','kuanzhai','dufu']},
+    {nm:'都江堰 + 青城山 一日', sub:'两千年水利 · 道教名山', ph:'tile_route.jpg',
+     flow:['都江堰','青城山'],
+     tm:'约 11 小时', walk:'10-12km', tip:'青城山石阶多，穿防滑鞋；高铁末班 21:00 前后',
+     pts:['dujiangyan','qingcheng']}
+  ],
+  3: [
+    {nm:'九寨沟 + 黄龙 三日', sub:'世界遗产双景 · 阿坝经典线', ph:'tile_glacier.jpg',
+     flow:['成都','九寨沟','黄龙','成都'],
+     tm:'3 天 2 晚', walk:'12-15km', tip:'九寨沟内全程观光车，黄龙建议索道上步行下',
+     pts:['jiuzhaigou','huanglong']},
+    {nm:'乐山 + 峨眉山 三日', sub:'大佛与金顶日出', ph:'tile_snow.jpg',
+     flow:['成都','乐山大佛','峨眉山','金顶','成都'],
+     tm:'3 天 2 晚', walk:'15-18km', tip:'峨眉山需住山上一晚才能赶日出，山上住宿较贵',
+     pts:['leshan','emei']},
+    {nm:'川西小环线 三日', sub:'四姑娘山 + 丹巴藏寨', ph:'tile_yak.jpg',
+     flow:['成都','巴朗山','四姑娘山','丹巴','成都'],
+     tm:'3 天 2 晚', walk:'8-10km', tip:'海拔爬升快，第一天不安排徒步，注意高反',
+     pts:['balang','sgn_shuang','danba']}
+  ],
+  7: [
+    {nm:'川西热血 · 冷水 七日大环线', sub:'登山 · 景区 · 水 · 陆 · 空', ph:'tile_hike.jpg',
+     flow:['成都','都江堰','巴朗山','四姑娘山','夹金山','丹巴','党岭','葫芦海','泸定','成都'],
+     tm:'7 天 6 晚', walk:'30-34km', tip:'最高海拔 4487m，含 2 晚露营，需 -10℃ 睡袋',
+     pts:['dujiangyan','hongkou','balang','sgn_czg','jiajin','danba','dangling','luding']},
+    {nm:'稻城亚丁深度 七日', sub:'蓝色星球最后一片净土', ph:'tile_camp.jpg',
+     flow:['成都','康定','新都桥','稻城','亚丁','成都'],
+     tm:'7 天 6 晚', walk:'25-30km', tip:'亚丁核心区海拔 4000m+，牛奶海往返 12km',
+     pts:['mugecuo','tagong','daocheng']},
+    {nm:'九寨黄龙 + 若尔盖 七日', sub:'水景与草原 · 阿坝全景', ph:'tile_grass.jpg',
+     flow:['成都','都江堰','九寨沟','黄龙','若尔盖','成都'],
+     tm:'7 天 6 晚', walk:'18-22km', tip:'草原段车程长，备晕车药；昼夜温差超 15℃',
+     pts:['dujiangyan','jiuzhaigou','huanglong','tagong']}
+  ]
+};
+
+/* 轮播主视觉 */
+/* 轮播：三条主题各一张，第四张为特色体验 */
+const HEROES = [
+  {img:'carousel_1.jpg', alt:'hero_4.jpg', tag:'一 日', d:1,
+   nm:'都江堰 · 青城山', meta:'两千年水利工程 · 安澜索桥 · 道教名山石阶'},
+  {img:'carousel_3.jpg', alt:'hero_2.jpg', tag:'三 日', d:3,
+   nm:'九寨沟 · 黄龙', meta:'世界遗产双景 · 钙华彩池与五花海'},
+  {img:'carousel_7.jpg', alt:'hero_1.jpg', tag:'七 日', d:7,
+   nm:'川西热血 · 冷水', meta:'最高 4487m · 徒步 30-34km · 2 晚星空露营'},
+  {img:'hero_4.jpg', alt:'hero_3.jpg', tag:'体 验', d:1,
+   nm:'虹口漂流 · 党岭星空', meta:'7km 激流 · 葫芦海 4150m 高山海子'}
+];
+
+/* 一日 / 三日 / 七日 主题卡（全部使用实景照片作背景） */
+const LANES = [
+  {d:1, nm:'一 日', sub:'周末说走就走',
+   img:'lane1.jpg', alt:'tile_route.jpg',
+   go:'都江堰 · 青城山 · 熊猫基地', seal:'近郊'},
+  {d:3, nm:'三 日', sub:'小长假刚好',
+   img:'lane3.jpg', alt:'tile_glacier.jpg',
+   go:'九寨沟 · 黄龙 · 乐山峨眉', seal:'经典'},
+  {d:7, nm:'七 日', sub:'热血冷水大环线',
+   img:'lane7.jpg', alt:'hero_1.jpg',
+   go:'川西环线 · 稻城亚丁', seal:'深度'}
+];
+
+/* 实景图集（均为行程内真实拍摄点位） */
+const GALLERY = [
+  {img:'tile_hike.jpg',   nm:'长坪沟彩林',  ds:'四姑娘山 · 秋季'},
+  {img:'tile_bridge.jpg', nm:'泸定桥',      ds:'大渡河 · 铁索'},
+  {img:'tile_village.jpg',nm:'中路藏寨',    ds:'丹巴 · 碉楼'},
+  {img:'tile_camp.jpg',   nm:'党岭星空',    ds:'葫芦海 · 露营'},
+  {img:'tile_grass.jpg',  nm:'塔公草原',    ds:'雅拉雪山'},
+  {img:'tile_yak.jpg',    nm:'高原牦牛',    ds:'川西 · 牧场'},
+  {img:'tile_jiajin.jpg', nm:'夹金山垭口',  ds:'4114m · 雪线'},
+  {img:'tile_glacier.jpg',nm:'冰川雪峰',    ds:'川西 · 高海拔'},
+  {img:'tile_road.jpg',   nm:'彩林公路',    ds:'山路 · 自驾'},
+  {img:'tile_city.jpg',   nm:'成都夜景',    ds:'出发城市'},
+  {img:'tile_snow.jpg',   nm:'四姑娘山',    ds:'幺妹峰 6250m'},
+  {img:'tile_route.jpg',  nm:'都江堰',      ds:'两千年水利'}
+];
+
+/* 文物（真实馆藏） */
+/* 蜀地名胜（均为行程内实拍点位） */
+const RELICS = [
+  {m:'water', n:'都江堰',     d:'两千两百年的无坝引水工程', p:'tile_route.jpg',   s:'水利'},
+  {m:'mountain', n:'四姑娘山', d:'幺妹峰 6250m · 蜀山之后', p:'tile_snow.jpg',    s:'雪山'},
+  {m:'bamboo', n:'长坪沟',     d:'金秋彩林与高山海子',      p:'tile_hike.jpg',    s:'彩林'},
+  {m:'arch',  n:'泸定桥',     d:'大渡桥横铁索寒',           p:'tile_bridge.jpg',  s:'红色'},
+  {m:'pavilion', n:'中路藏寨', d:'碉楼与梨树 · 中国最美乡村', p:'tile_village.jpg', s:'藏寨'},
+  {m:'bird',  n:'党岭星空',   d:'葫芦海 4150m · 露营看银河', p:'tile_camp.jpg',    s:'露营'}
+];
+
+/* ==================================================================
+   费用模型
+   ================================================================== */
+const CITY_KM = {'成都':0,'都江堰':60,'乐山':150,'绵阳':120,'阿坝':330,'甘孜':360};
+const HOTEL = {'成都':90,'都江堰':100,'乐山':95,'绵阳':95,'阿坝':130,'甘孜':110};
+const TRAVEL = {
+  '成都-都江堰':1,'成都-乐山':1.5,'成都-绵阳':1.5,'成都-阿坝':7,'成都-甘孜':7,
+  '都江堰-阿坝':6,'都江堰-甘孜':6,'乐山-甘孜':5,'乐山-阿坝':7,'绵阳-阿坝':4,
+  '绵阳-甘孜':6,'阿坝-甘孜':8
+};
+const MEAL = 85, CAR_KM = 0.45, RAIL = 1.1, GUIDE = 22, CAMP = 45;
+
+function calcCost(pts, days, ppl){
+  days = Math.max(1, days); ppl = Math.max(1, ppl);
+  const cities = [...new Set(pts.map(p => p.c))];
+  const base = pts[0]?.c || '成都';
+  const d0 = pts.length ? (pts[0].km ?? (CITY_KM[pts[0].c] ?? 0)) : 0;
+  const crossCity = cities.length > 1 || Math.abs(d0) >= 40;
+
+  const ticket = pts.reduce((a, p) => a + p.pm * p.stu, 0);
+  const legKm = p => p.km ?? (CITY_KM[p.c] ?? 0);
+  let km = 0;
+  if (crossCity){
+    let prev = CITY_KM[base] ?? 0;
+    pts.forEach(p => { km += Math.abs(legKm(p) - prev); prev = legKm(p); });
+    km += prev;
+    km = Math.round(km * 1.2);
+  }
+  const nCity = Math.max(1, cities.length);
+  const nights = Math.max(0, days - 1);
+  const hotel = Math.round(nights * (cities.reduce((a, c) => a + (HOTEL[c] ?? 120), 0) / nCity));
+  const camp = pts.some(p => p.id === 'dangling') ? Math.min(2, nights) * CAMP : 0;
+  const meals = Math.max(1, days) * MEAL;
+  const car = crossCity ? Math.round(km * CAR_KM) : 0;
+  const local = crossCity ? 0 : Math.max(1, days) * 20;
+  const rail = !crossCity ? 0 : (km > 400 ? 300 : Math.round(km * RAIL));
+  const guide = Math.max(1, days) * GUIDE;
+  const items = [
+    ['门票 · 景交', ticket, 'r'],
+    ['住宿 · 营地', hotel + camp, 'b'],
+    ['餐饮', meals, ''],
+    ['包车 · 油费', car, ''],
+    ['城际高铁', rail, 'g'],
+    ['市内交通', local, 'g'],
+    ['领队保险物料', guide, 'g']
+  ].filter(i => i[1] > 0);
+  const per = Math.round(items.reduce((a, i) => a + i[1], 0));
+  const price = Math.round(per / 0.867 / 10) * 10;
+  return {items, per, price, km, base, crossCity, nights,
+          campNights: camp ? Math.min(2, nights) : 0,
+          total: per * ppl, profit: (price - per) * ppl};
+}
+
+/* ==================================================================
+   状态
+   ================================================================== */
+const LS = 'shuji_song_v1';
+let lockDays = null;
+let ST = {days:3, ppl:6, city:'全部', picked:[], saved:[], checks:{},
+          costSrc:'rec', recDay:1, slide:0, src:'new'};
+try { const r = localStorage.getItem(LS); if (r) ST = Object.assign(ST, JSON.parse(r)); } catch(e){}
+const save = () => { try { localStorage.setItem(LS, JSON.stringify(ST)); } catch(e){} };
+
+/* 图源：'new' = 新找的实景，'plan' = 课程方案里的实拍 */
+function pick(newName, planName){
+  return ST.src === 'plan' ? (planName || newName) : newName;
+}
+
+const $ = (s, r) => (r || document).querySelector(s);
+const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
+const yuan = v => '¥' + Math.round(v).toLocaleString('zh-CN');
+const spot = id => SPOTS.find(s => s.id === id);
+const routePts = r => r.pts.map(spot).filter(Boolean);
+
+/* ==================================================================
+   多人协作
+   ================================================================== */
+const COLLAB = {
+  on: false, ws: null, room: '', cid: '', name: '',
+  v: 0, peers: [], log: [], mode: 'off',
+  poll: null, retry: 0, applying: false, typing: null,
+  role: 'edit', token: '', locked: false, es: null, sseTried: false
+};
+
+const ROLE_TXT = {host:'主持人', edit:'可编辑', view:'只读'};
+function canEdit(op){
+  const P = {host:['add','del','set','check','sync','clear'],
+             edit:['add','del','set','check','sync'],
+             view:[]}[COLLAB.role] || [];
+  return P.indexOf(op) >= 0;
+}
+
+const SID = {panda:'熊猫基地', wuhou:'武侯祠锦里', jinsha:'金沙遗址', kuanzhai:'宽窄巷子',
+  dufu:'杜甫草堂', dujiangyan:'都江堰', qingcheng:'青城山', hongkou:'虹口漂流',
+  balang:'巴朗山垭口', sgn_czg:'长坪沟', sgn_shuang:'双桥沟', jiuzhaigou:'九寨沟',
+  huanglong:'黄龙', jiajin:'夹金山垭口', danba:'中路藏寨', dangling:'党岭葫芦海',
+  wenquan:'党岭野温泉', luding:'泸定桥', tagong:'塔公草原', daocheng:'稻城亚丁',
+  mugecuo:'木格措', leshan:'乐山大佛', emei:'峨眉山', jiuding:'九皇山', xiling:'西岭雪山'};
+
+function collabURL(){
+  const q = new URLSearchParams(location.search);
+  const bk = q.get('backend') || '';
+  if (bk){ try { localStorage.setItem('shuji_backend', bk); } catch(e){} }
+  return { room:(q.get('room')||'').toUpperCase(), name:q.get('name')||'', backend:bk };
+}
+
+/* 后端地址：默认与页面同源（后端同时托管前端时无需配置）；
+   GitHub Pages 这类纯静态托管，则指向 Render 上的后端 */
+function backendBase(){
+  let b = '';
+  try { b = localStorage.getItem('shuji_backend') || ''; } catch(e){}
+  b = (b || '').trim().replace(/\/+$/, '');
+  if (!b) return location.origin;                  // 同源
+  if (!/^https?:\/\//i.test(b)) b = 'https://' + b;   // 允许只填域名
+  return b;
+}
+
+function saveCollabSession(){
+  try {
+    localStorage.setItem('shuji_session', JSON.stringify(
+      {room:COLLAB.room, token:COLLAB.token, role:COLLAB.role, name:COLLAB.name}));
+  } catch(e){}
+}
+
+function loadCollabSession(){
+  try { return JSON.parse(localStorage.getItem('shuji_session') || 'null'); }
+  catch(e){ return null; }
+}
+
+function authQuery(){
+  let q = '&name=' + encodeURIComponent(COLLAB.name);
+  if (COLLAB.token) q += '&token=' + encodeURIComponent(COLLAB.token);
+  else if (COLLAB.pw) q += '&pw=' + encodeURIComponent(COLLAB.pw);
+  return q;
+}
+
+function wsURL(){
+  const b = backendBase();
+  return b.replace(/^http/i, 'ws') + '/?room=' + encodeURIComponent(COLLAB.room) +
+         authQuery() + '&cid=' + COLLAB.cid;
+}
+
+function sseURL(){
+  const b = backendBase();
+  return b + '/api/stream?room=' + encodeURIComponent(COLLAB.room) + authQuery();
+}
+
+/* 同源才可能连得上；跨域时只走 HTTP 轮询（WebSocket 无 CORS 概念，能连就赚） */
+function sameOriginBackend(){
+  try { return new URL(backendBase()).origin === location.origin; } catch(e){ return false; }
+}
+
+function connectCollab(room, name, pw){
+  COLLAB.room = room; COLLAB.name = name;
+  COLLAB.pw = pw || '';
+  COLLAB.cid = COLLAB.cid || ('c' + Math.random().toString(36).slice(2, 10));
+  try { localStorage.setItem('shuji_name', name); } catch(e){}
+  try { localStorage.setItem('shuji_room', room); } catch(e){}
+  COLLAB.on = true;
+  renderCollab();
+  openWS();
+}
+
+function openWS(){
+  if (!COLLAB.on) return;
+  const url = wsURL();
+  let ws;
+  try { ws = new WebSocket(url); } catch(e){ return startPolling(); }
+  COLLAB.ws = ws;
+  COLLAB.mode = 'connecting';
+
+  ws.onopen = () => {
+    COLLAB.mode = 'ws'; COLLAB.retry = 0;
+    stopPolling(); renderCollab();
+    toast('已加入协作房间 ' + COLLAB.room);
+  };
+  ws.onmessage = ev => {
+    let m; try { m = JSON.parse(ev.data); } catch(e){ return; }
+    if (!m || !m.t) return;
+    if (m.t === 'welcome'){
+      if (m.cid) COLLAB.cid = m.cid;
+      if (m.token){ COLLAB.token = m.token; COLLAB.pw = ''; saveCollabSession(); }
+      COLLAB.role = m.role || 'edit';
+      COLLAB.locked = !!m.locked;
+      COLLAB.peers = m.peers || [];
+      COLLAB.log = m.log || [];
+      if (m.st) applyRemote(m.st, m.v, true);
+      renderCollab(); renderCollabPanel();
+    } else if (m.t === 'denied'){
+      COLLAB.denied = m.msg || '被拒绝';
+      toast('加入失败：' + COLLAB.denied);
+      COLLAB.on = false; COLLAB.mode = 'off';
+      dropTransport();
+      renderCollab(); renderCollabPanel();
+    } else if (m.t === 'locked'){
+      COLLAB.locked = !!m.locked;
+      renderCollabPanel();
+    } else if (m.t === 'notice'){
+      toast(m.msg || '');
+    } else if (m.t === 'state'){
+      applyRemote(m.st, m.v, false, m);
+    } else if (m.t === 'peers'){
+      COLLAB.peers = m.peers || [];
+      renderCollab();
+    } else if (m.t === 'log'){
+      COLLAB.log = m.log || [];
+      renderLog();
+    }
+  };
+  ws.onclose = () => {
+    if (!COLLAB.on) return;
+    COLLAB.mode = 'off'; renderCollab();
+    if (COLLAB.retry < 3){
+      COLLAB.retry++;
+      setTimeout(openWS, 700 * COLLAB.retry);          // 先退避重连
+    } else {
+      // WebSocket 连续失败（校园网/代理常拦 WS）→ 换 SSE
+      COLLAB.sseTried = false;
+      startSSE();
+      setTimeout(() => { if (COLLAB.mode !== 'sse') startPolling(); }, 2500);
+    }
+  };
+  ws.onerror = () => {};   // 统一交给 onclose 处理降级，避免重复触发
+}
+
+/* ---- SSE：WebSocket 被拦时的第二通道 ---- */
+function startSSE(){
+  if (!COLLAB.on || COLLAB.es || COLLAB.sseTried === 'now') return;
+  COLLAB.sseTried = 'now';
+  try { COLLAB.es = new EventSource(sseURL()); }
+  catch(e){ return startPolling(); }
+  COLLAB.mode = 'sse'; renderCollab();
+  COLLAB.es.onmessage = ev => {
+    let m; try { m = JSON.parse(ev.data); } catch(e){ return; }
+    if (!m || !m.t) return;
+    COLLAB.mode = 'sse'; 
+    if (m.t === 'welcome'){
+      if (m.token){ COLLAB.token = m.token; COLLAB.pw = ''; saveCollabSession(); }
+      COLLAB.role = m.role || COLLAB.role;
+      COLLAB.locked = !!m.locked;
+      COLLAB.peers = m.peers || []; COLLAB.log = m.log || [];
+      if (m.st) applyRemote(m.st, m.v, true);
+    } else if (m.t === 'state'){
+      applyRemote(m.st, m.v, false, m);
+    } else if (m.t === 'peers'){
+      COLLAB.peers = m.peers || [];
+    } else if (m.t === 'denied'){
+      COLLAB.on = false; COLLAB.mode = 'off';
+      toast('加入失败：' + (m.msg || ''));
+      stopSSE();
+    }
+    renderCollab(); renderCollabPanel();
+  };
+  COLLAB.es.onerror = () => {
+    // EventSource 自己会重连；连续失败就降级到轮询
+    if (COLLAB.mode === 'sse'){
+      COLLAB.sseFails = (COLLAB.sseFails || 0) + 1;
+      if (COLLAB.sseFails >= 3){ stopSSE(); startPolling(); }
+    }
+  };
+  COLLAB.es.onopen = () => { COLLAB.sseFails = 0; renderCollab(); };
+}
+
+function stopSSE(){
+  if (COLLAB.es){ try { COLLAB.es.close(); } catch(e){} COLLAB.es = null; }
+}
+
+function dropTransport(){
+  stopSSE();
+  if (COLLAB.ws){ try { COLLAB.ws.onclose = null; COLLAB.ws.close(); } catch(e){} 
+                  COLLAB.ws = null; }
+  if (COLLAB.poll){ clearInterval(COLLAB.poll); COLLAB.poll = null; }
+}
+
+function startPolling(){
+  if (!COLLAB.on || COLLAB.poll) return;
+  COLLAB.mode = 'poll'; renderCollab();
+  COLLAB.poll = setInterval(async () => {
+    try {
+      const r = await fetch(backendBase() + '/api/poll?room=' +
+                            encodeURIComponent(COLLAB.room) + '&v=' + COLLAB.v +
+                            authQuery(), {cache:'no-store'});
+      const j = await r.json();
+      if (j.st) applyRemote(j.st, j.v, false, {who:'', op:'sync'});
+      COLLAB.peers = j.peers || [];
+      if (j.log) COLLAB.log = j.log;
+      renderCollab(); renderLog();
+    } catch(e){ COLLAB.mode = 'off'; renderCollab(); }
+  }, 1200);
+}
+
+function stopPolling(){
+  if (COLLAB.poll){ clearInterval(COLLAB.poll); COLLAB.poll = null; }
+}
+
+/* 别人的变更 → 应用（服务端权威，整表覆盖） */
+function applyRemote(st, v, silent, meta){
+  if (!st) return;
+  COLLAB.applying = true;
+  const before = JSON.stringify([ST.picked, ST.days, ST.ppl]);
+  const beforeCk = JSON.stringify(ST.checks);
+  ST.picked = (st.picked || []).filter(x => SID[x]);
+  ST.days = st.days || ST.days;
+  ST.ppl = st.ppl || ST.ppl;
+  ST.checks = {};
+  Object.keys(st.checks || {}).forEach(k => { ST.checks[k] = true; });
+  COLLAB.v = v || COLLAB.v;
+  save();
+  renderDIY(); renderCost(); renderList(); renderMe();
+  renderLanes(); renderRec();
+  $$('#costSegs button').forEach(x => x.classList.toggle('on', x.dataset.src === ST.costSrc));
+  if (!silent){
+    if (before !== JSON.stringify([ST.picked, ST.days, ST.ppl]) ||
+        beforeCk !== JSON.stringify(ST.checks)){
+      const w = (meta && meta.who) ? meta.who : '同伴';
+      toast(w + ' 更新了行程');
+    }
+  }
+  if (meta && (meta.who || meta.t2)){
+    COLLAB.log.push({t: meta.t2 || new Date().toTimeString().slice(0,8),
+                     who: meta.who || '同伴', op: meta.op || 'sync', id: meta.id || ''});
+    COLLAB.log = COLLAB.log.slice(-60);
+  }
+  renderCollab(); renderLog();
+  COLLAB.applying = false;
+}
+
+/* 自己的操作 → 上报 */
+function reportOp(op, id){
+  if (!COLLAB.on) return;
+  if (!canEdit(op)){
+    toast('你是' + (ROLE_TXT[COLLAB.role] || COLLAB.role) + '，不能修改行程');
+    return;
+  }
+  COLLAB.v++;
+  const payload = {t:'op', room:COLLAB.room, op:op, id:id||'', who:COLLAB.name};
+  if (COLLAB.ws && COLLAB.ws.readyState === 1){
+    try { COLLAB.ws.send(JSON.stringify(payload)); } catch(e){}
+  } else {
+    fetch(backendBase() + '/api/op',
+      {method:'POST', headers:{'Content-Type':'application/json'},
+       body: JSON.stringify({room:COLLAB.room, who:COLLAB.name, op:op,
+                             id:id||'', token:COLLAB.token, pw:COLLAB.pw})
+    }).catch(()=>{});
+  }
+  COLLAB.log.push({t:new Date().toTimeString().slice(0,8), who:COLLAB.name,
+                   op:op, id:id||'', me:true});
+  COLLAB.log = COLLAB.log.slice(-60);
+  renderLog();
+}
+
+/* ================= 协作 UI ================= */
+function initial(t){ return (t || '?').trim().charAt(0) || '?'; }
+
+function renderCollab(){
+  const bar = $('#collabBar');
+  if (!bar) return;
+  const on = COLLAB.on;
+  bar.classList.toggle('plain', on && !$('#v-rec').classList.contains('active'));
+  const dot = $('#cDot');
+  dot.className = 'dot ' + (COLLAB.mode === 'ws' ? 'on'
+                            : COLLAB.mode === 'poll' ? 'poll'
+                            : on ? 'off' : '');
+  $('#cRoom').textContent = on ? '房间 ' + COLLAB.room : '单机模式';
+  $('#cWho').innerHTML = on
+    ? '<span class="peers">' + COLLAB.peers.slice(0,6).map(p =>
+        '<i title="' + p.name + '">' + initial(p.name) + '</i>').join('') +
+      '</span>' + (COLLAB.peers.length ? ' ' + COLLAB.peers.length + ' 人在线' : '')
+    : '';
+  $('#cStat').textContent = !on ? '点「协作」开启'
+    : COLLAB.mode === 'ws' ? '实时同步'
+    : COLLAB.mode === 'poll' ? '轮询同步'
+    : COLLAB.mode === 'connecting' ? '连接中…' : '已断开';
+  renderLog();
+}
+
+function opText(e){
+  const nm = SID[e.id] || e.id || '';
+  switch(e.op){
+    case 'add':   return '加入了 ' + nm;
+    case 'del':   return '移除了 ' + nm;
+    case 'clear': return '清空了行程';
+    case 'set':   return e.id.replace(':', ' 改为 ');
+    case 'check': return '勾选了一件行装';
+    case 'sync':  return '同步了整份行程';
+    default:      return '更新了行程';
+  }
+}
+
+function renderLog(){
+  const box = $('#cLog');
+  if (!box) return;
+  if (!COLLAB.log.length){
+    box.innerHTML = '<div class="tiny" style="padding:6px 0">还没有协作记录</div>';
+    return;
+  }
+  box.innerHTML = '<div class="log">' + COLLAB.log.slice(-14).reverse().map(e =>
+    '<div class="li"><span class="tm">' + (e.t || '') + '</span>' +
+    '<span class="wh">' + (e.who || '同伴') + '</span>' +
+    '<span class="ac">' + opText(e) + '</span></div>').join('') + '</div>';
+}
+
+/* ==================================================================
+   状态栏
+   ================================================================== */
+(function(){
+  const t = () => { const n = new Date(), p = v => String(v).padStart(2,'0');
+    $('#sbTime').textContent = p(n.getHours()) + ':' + p(n.getMinutes()); };
+  t(); setInterval(t, 1000);
+
+  const el = $('#bat'), pctEl = $('#batPct'), fill = $('#batFill');
+  let lv = 72, chg = false, timer = null;
+  const render = (level, charging) => {
+    const p = Math.max(0, Math.min(100, Math.round(level)));
+    pctEl.textContent = p + '%';
+    fill.style.width = p + '%';
+    el.classList.toggle('low', p <= 20 && !charging);
+    el.classList.toggle('chg', !!charging);
+  };
+  const sim = () => {
+    render(lv, chg);
+    clearInterval(timer);
+    timer = setInterval(() => {
+      if (chg){ lv += .9; if (lv >= 100){ lv = 100; chg = false; } }
+      else { lv -= .2; if (lv <= 14){ lv = 14; chg = true; } }
+      render(lv, chg);
+    }, 2800);
+  };
+  if (navigator.getBattery){
+    navigator.getBattery().then(b => {
+      const up = () => render(b.level * 100, b.charging);
+      up(); b.addEventListener('levelchange', up); b.addEventListener('chargingchange', up);
+    }).catch(sim);
+  } else sim();
+})();
+
+/* ==================================================================
+   轮播
+   ================================================================== */
+function renderCarousel(){
+  $('#slides').innerHTML = HEROES.map(h => `
+    <div class="slide" data-d="${h.d}">
+      <img src="assets/${pick(h.img, h.alt)}" alt="">
+      <div class="veil"></div>
+      <div class="txt">
+        <span class="tag">${h.tag}</span>
+        <h2>${h.nm}</h2>
+        <div class="meta">${h.meta}</div>
+      </div>
+    </div>`).join('');
+  $('#dots').innerHTML = HEROES.map((_, i) =>
+    `<i class="${i === ST.slide ? 'on' : ''}"></i>`).join('');
+  $$('#carousel .slide').forEach(s => s.addEventListener('click', () => {
+    ST.recDay = +s.dataset.d; save();
+    
+    renderRec();
+    const box = $('#v-rec'), el = $('#recList');
+    if (box && el) box.scrollTo({top: Math.max(0, el.offsetTop - 120), behavior:'smooth'});
+    toast('已切到 ' + ST.recDay + ' 日精选路线');
+  }));
+  goSlide(ST.slide);
+}
+function goSlide(i){
+  ST.slide = (i + HEROES.length) % HEROES.length;
+  $('#slides').style.transform = 'translateX(-' + (ST.slide * 100) + '%)';
+  $$('#dots i').forEach((d, k) => d.classList.toggle('on', k === ST.slide));
+  save();
+}
+setInterval(() => goSlide(ST.slide + 1), 5200);
+
+/* ==================================================================
+   今日卡
+   ================================================================== */
+function renderToday(){
+  const n = new Date();
+  const wk = ['日','一','二','三','四','五','六'][n.getDay()];
+  $('#todayDate').textContent =
+    `${n.getFullYear()} 年 ${n.getMonth()+1} 月 ${n.getDate()} 日　星期${wk}`;
+  const h = n.getHours();
+  const phase = h < 11 ? '今日开拔' : h < 18 ? '今日正宜出行' : '今夜宜定行程';
+  $('#todayTitle').textContent = phase;
+  $('#goIcon').innerHTML = ic('compass');
+}
+
+/* ==================================================================
+   寻迹四川（圆形图标）
+   ================================================================== */
+function renderOrbits(){
+  const groups = [
+    ['熊猫基地', ['panda']], ['都江堰', ['dujiangyan','hongkou']], ['青城山', ['qingcheng']],
+    ['九寨沟', ['jiuzhaigou']], ['黄龙', ['huanglong']], ['四姑娘山', ['sgn_czg','sgn_shuang','balang']],
+    ['丹巴藏寨', ['danba']], ['党岭', ['dangling','wenquan']], ['稻城亚丁', ['daocheng','tagong']],
+    ['乐山峨眉', ['leshan','emei']]
+  ];
+  const motifOf = g => CATMOTIF[(spot(g[1][0]) || {}).t] || 'pavilion';
+  $('#orbits').innerHTML = groups.map(g => `
+    <div class="orb" data-s="${g[1].join(',')}">
+      <span class="disc">${ic(motifOf(g))}</span>
+      <span class="lb">${g[0]}</span>
+    </div>`).join('');
+  $$('#orbits .orb').forEach(o => o.addEventListener('click', () => {
+    const ids = o.dataset.s.split(',');
+    ST.picked = ids.slice();
+    ST.city = '全部';
+    const hrs = ST.picked.reduce((a, x) => a + (spot(x)?.h || 0), 0);
+    lockDays = null;
+    ST.days = Math.max(1, Math.min(15, Math.ceil((hrs + travelHours(ST.picked)) / 8)));
+    ST.costSrc = 'diy';
+    save(); renderDIY(); renderCost(); renderMe(); go('diy');
+    toast('已加入「' + o.querySelector('.lb').textContent + '」');
+  }));
+}
+
+/* ==================================================================
+   推荐路线
+   ================================================================== */
+function renderLanes(){
+  const cost = d => calcCost(routePts(ROUTES[d][0]), d, 6);
+  $('#lanes').innerHTML = LANES.map(L => {
+    const c = cost(L.d), cnt = ROUTES[L.d].length;
+    return `
+    <div class="lane${ST.recDay === L.d ? ' on' : ''}" data-d="${L.d}">
+      <img src="assets/${pick(L.img, L.alt)}" alt="${L.nm}">
+      <span class="sh"></span>
+      <span class="sealm">${L.seal}</span>
+      <span class="bd">
+        <span class="dy">${L.nm}</span>
+        <span class="sb">${L.sub}</span>
+        <span class="gk">${L.go}<br>${cnt} 条路线可选</span>
+        <span class="pr">${yuan(c.price)}<small>起 / 人</small></span>
+      </span>
+    </div>`;
+  }).join('');
+  $$('#lanes .lane').forEach(el => el.addEventListener('click', () => {
+    ST.recDay = +el.dataset.d; save();
+    renderLanes(); renderRec();
+  }));
+}
+
+function renderRec(){
+  const order = [1, 3, 7];
+  $('#recHint').textContent = ST.recDay + ' 日 · ' + ROUTES[ST.recDay].length + ' 条';
+  let html = '';
+  order.forEach(d => {
+    const list = ROUTES[d];
+    if (!list) return;
+    const hi = d === ST.recDay;
+    html += `<div class="rgrp"><span class="d">${d === 1 ? '一 日' : d === 3 ? '三 日' : '七 日'}</span>
+      <span class="n">${list.length} 条</span><span class="ln"></span></div>`;
+    html += list.map((r, i) => {
+      const c = calcCost(routePts(r), d, 6);
+      return `
+      <div class="rt${hi ? '' : ' dim'}" data-d="${d}" data-ri="${i}">
+        <div class="ph">
+          <img src="assets/${r.ph}" alt="${r.nm}">
+          <div class="ov"></div>
+          <span class="seal-sm seal" style="width:30px;height:30px;font-size:9px">${d}<br>日</span>
+          <div class="ttl"><b>${r.nm}</b><span>${r.sub}</span></div>
+        </div>
+        <div class="bd">
+          <div class="flow">${r.flow.map((f, k) =>
+            `<b>${f}</b>${k < r.flow.length - 1 ? ' → ' : ''}`).join('')}</div>
+          <div class="chips">
+            <span class="tg r">人均 ${yuan(c.price)}</span>
+            <span class="tg">${r.tm}</span>
+            <span class="tg b">徒步 ${r.walk}</span>
+            <span class="tg g">${r.pts.length} 景点</span>
+          </div>
+          <div class="tiny" style="margin-top:9px">◈ ${r.tip}</div>
+        </div>
+      </div>`;
+    }).join('');
+  });
+  $('#recList').innerHTML = html;
+  $$('#recList .rt').forEach(card => card.addEventListener('click', () => {
+    ST.recDay = +card.dataset.d;
+    loadRoute(ROUTES[ST.recDay][+card.dataset.ri]);
+  }));
+}
+
+function loadRoute(r){
+  ST.days = ST.recDay;
+  lockDays = r.pts.length;
+  ST.picked = r.pts.slice();
+  ST.costSrc = 'diy';
+  save();
+  renderDIY(); renderCost(); renderMe();
+  $$('#costSegs button').forEach(x => x.classList.toggle('on', x.dataset.src === ST.costSrc));
+  go('diy');
+  toast('已载入「' + r.nm + '」');
+}
+
+/* ==================================================================
+   规划
+   ================================================================== */
+function travelHours(ids){
+  const cs = ids.map(i => spot(i)?.c).filter(Boolean);
+  let t = 0;
+  cs.forEach((c, i) => {
+    if (!i) return;
+    const a = cs[i-1] + '-' + c, b = c + '-' + cs[i-1];
+    if (a === b) return;
+    t += TRAVEL[a] ?? TRAVEL[b] ?? 3;
+  });
+  return t;
+}
+
+function renderDIY(){
+  $('#dayNum').innerHTML = ST.days + '<small>天</small>';
+  $('#pplNum').innerHTML = ST.ppl + '<small>人</small>';
+  const pts = ST.picked.map(spot).filter(Boolean);
+  $('#budgetNum').textContent = pts.length ? yuan(calcCost(pts, ST.days, ST.ppl).price) : '¥0';
+
+  const cities = ['全部', ...new Set(SPOTS.map(s => s.c))];
+  $('#cityBar').innerHTML = cities.map(cn =>
+    `<button class="chip${ST.city === cn ? ' on' : ''}" data-c="${cn}">${cn}</button>`).join('');
+  $$('#cityBar .chip').forEach(b => b.addEventListener('click', () => {
+    ST.city = b.dataset.c; save(); renderDIY();
+  }));
+
+  const list = SPOTS.filter(s => ST.city === '全部' || s.c === ST.city);
+  $('#spotCount').textContent = list.length + ' 处 · 按城市';
+  $('#spotList').innerHTML = list.map(s => {
+    const on = ST.picked.includes(s.id);
+    const price = s.pm ? '¥' + s.pm + (s.stu < 1 ? ' 学生¥' + Math.round(s.pm * s.stu) : '') : '免费';
+    return `<div class="spot${on ? ' in' : ''}" data-id="${s.id}">
+      <span class="disc">${ic(CATMOTIF[s.t] || 'pavilion')}</span>
+      <span class="info"><span class="nm">${s.n}</span>
+        <span class="meta">${s.tag} · ${s.h}h · ${price}</span></span>
+      <span class="add">${on ? '✓' : '+'}</span>
+    </div>`;
+  }).join('');
+  $$('#spotList .spot').forEach(el => el.addEventListener('click', () => {
+    if (!guardEdit()) return;
+    toggleSpot(el.dataset.id);
+  }));
+
+  $('#itemCount').textContent = ST.picked.length + ' 处 · ' + ST.days + ' 天';
+  if (!ST.picked.length){
+    $('#planList').innerHTML =
+      `<div class="empty"><span class="em">${ic('compass')}</span>还没有选景点<br>上面点「＋」把想去的地方加进来</div>`;
+    return;
+  }
+  const perDay = Math.max(1, Math.ceil(ST.picked.length / Math.max(1, ST.days)));
+  let html = '';
+  for (let i = 0; i < ST.picked.length; i += perDay){
+    const grp = ST.picked.slice(i, i + perDay);
+    const d = i / perDay + 1;
+    const hrs = Math.round(grp.reduce((a, x) => a + (spot(x)?.h || 0), 0) * 10) / 10;
+    html += `<div class="plan"><div class="plan-head">
+        <span class="d">第 ${d} 日</span><span class="h">${hrs} 小时</span></div>`;
+    html += grp.map((xid, k) => {
+      const x = spot(xid);
+      if (!x) return '';
+      return `<div class="item"><span class="no">${i + k + 1}</span>
+        <span class="tx">${x.n}<span>${x.c} · ${x.tag} · ${x.h}h</span></span>
+        <button class="del" data-del="${xid}">✕</button></div>`;
+    }).join('');
+    html += '</div>';
+  }
+  const tail = `<div class="card" style="text-align:center;padding:11px">
+      <span class="tiny">共 ${ST.days} 天 · ${ST.picked.length} 处景点 ·
+      衔接车程约 ${travelHours(ST.picked)} 小时</span></div>`;
+  $('#planList').innerHTML = html + tail;
+  $$('#planList .del').forEach(b => b.addEventListener('click', e => {
+    e.stopPropagation();
+    ST.picked = ST.picked.filter(x => x !== b.dataset.del);
+    if (ST.picked.length) ST.costSrc = 'diy';
+    reportOp('del', b.dataset.del);
+    save(); renderDIY(); renderCost();
+    $$('#costSegs button').forEach(x => x.classList.toggle('on', x.dataset.src === ST.costSrc));
+  }));
+}
+
+/* 只读成员点景点只提示，不改数据 */
+function guardEdit(){
+  if (COLLAB.on && !canEdit('add')){
+    toast('你是只读成员，只能看不能改');
+    return false;
+  }
+  return true;
+}
+
+function toggleSpot(id){
+  // 纵深防御：UI 点击处已有护栏，但函数本身也必须拦住，
+  // 否则任何别的调用路径（或控制台）都能绕过权限改数据
+  if (COLLAB.on && !canEdit('add')){
+    toast('你是只读成员，只能看不能改');
+    return;
+  }
+  const i = ST.picked.indexOf(id);
+  if (i >= 0) ST.picked.splice(i, 1); else ST.picked.push(id);
+  const hrs = ST.picked.reduce((a, x) => a + (spot(x)?.h || 0), 0);
+  const need = Math.max(1, Math.min(15, Math.ceil((hrs + travelHours(ST.picked)) / 8)));
+  if (lockDays === null) ST.days = need;
+  else ST.days = Math.max(ST.recDay, Math.min(need, ST.recDay + 2));
+  if (ST.picked.length) ST.costSrc = 'diy';
+  reportOp(i >= 0 ? 'del' : 'add', id);
+  save(); renderDIY(); renderCost();
+  $$('#costSegs button').forEach(x => x.classList.toggle('on', x.dataset.src === ST.costSrc));
+}
+
+/* ==================================================================
+   花费
+   ================================================================== */
+function currentCostData(){
+  if (ST.costSrc === 'diy')
+    return {pts: ST.picked.map(spot).filter(Boolean), days: ST.days, ppl: ST.ppl, name:'我的行程'};
+  const r = ROUTES[ST.recDay][0];
+  return {pts: routePts(r), days: ST.recDay, ppl: ST.ppl, name: r.nm};
+}
+
+function renderCost(){
+  if (ST.costSrc === 'diy' && !ST.picked.length){
+    ST.costSrc = 'rec';
+    $$('#costSegs button').forEach(x => x.classList.toggle('on', x.dataset.src === 'rec'));
+  }
+  const d = currentCostData();
+  if (!d.pts.length){
+    $('#costBody').innerHTML =
+      `<div class="empty"><span class="em">${ic('coin')}</span>还没有可以测算的行程<br>先去「规划」选几个景点</div>`;
+    return;
+  }
+  const c = calcCost(d.pts, d.days, d.ppl);
+  const total = c.items.reduce((a, i) => a + i[1], 0);
+  const COL = {r:'#9E2B25', b:'#3E6680', '':'#C5A059', g:'#5A7C4A'};
+  const mx = Math.max(...c.items.map(x => x[1]));
+
+  $('#costBody').innerHTML = `
+    <div class="card" style="background:linear-gradient(150deg,#4A3A26,#33281B);border-color:#5C4830">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-family:var(--serif);font-size:10.5px;letter-spacing:1.6px;color:#C9AE79">${d.name}</div>
+          <div style="font-family:var(--serif);font-size:27px;font-weight:600;color:#FBF3E0;margin-top:6px;
+            font-variant-numeric:tabular-nums">${yuan(c.price)}<span style="font-size:12px;font-weight:400"> / 人</span></div>
+          <div style="font-size:10px;color:rgba(251,243,224,.62);margin-top:5px">
+            ${d.days} 天 · ${d.ppl} 人 · 成本 ${yuan(c.per)} · 毛利 ${yuan(c.price - c.per)}</div>
+        </div>
+        <div class="seal" style="width:40px;height:40px;font-size:11px">报<br>价</div>
+      </div>
+    </div>
+
+    <div class="kpis" style="margin-bottom:10px">
+      <div class="kpi"><div class="k">人均成本</div><div class="v">${yuan(c.per)}</div>
+        <div class="d">${c.km ? c.km + ' km 车程' : '市内行程'}</div></div>
+      <div class="kpi r"><div class="k">整团总价</div><div class="v">${yuan(c.price * d.ppl)}</div>
+        <div class="d">${d.ppl} 人 × ${yuan(c.price)}</div></div>
+      <div class="kpi g"><div class="k">整团毛利</div><div class="v">${yuan(c.profit)}</div>
+        <div class="d">毛利率约 13%</div></div>
+      <div class="kpi b"><div class="k">住宿</div><div class="v">${c.nights}<small>晚</small></div>
+        <div class="d">${c.campNights ? '含露营 ' + c.campNights + ' 晚' : '青旅 / 民宿'}</div></div>
+    </div>
+
+    <div class="sec"><span class="t">费用构成</span><span class="orn"></span></div>
+    <div class="card">
+      <div class="strip">${c.items.map(i =>
+        `<i style="width:${(i[1] / total * 100).toFixed(1)}%;background:${COL[i[2]]}"></i>`).join('')}</div>
+      <div class="legend">${c.items.map(i =>
+        `<div class="lg"><span class="sw" style="background:${COL[i[2]]}"></span>
+          <span class="nm">${i[0]}</span>
+          <span class="vl">${yuan(i[1])} · ${(i[1] / total * 100).toFixed(1)}%</span></div>`).join('')}</div>
+    </div>
+
+    <div class="sec"><span class="t">逐项明细</span><span class="orn"></span></div>
+    <div class="card">
+      <div class="bars">${c.items.map(i =>
+        `<div class="bar ${i[2]}"><span>${i[0]}</span>
+          <span class="tk"><i class="fl" data-w="${(i[1] / mx * 100).toFixed(0)}%"></i></span>
+          <span class="vl">${yuan(i[1])}</span></div>`).join('')}</div>
+    </div>
+
+    <div class="sec"><span class="t">测算口径</span><span class="orn"></span></div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <table class="tb">
+        <tr><th>项目</th><th>取值</th></tr>
+        <tr><td>出发城市</td><td class="n">${c.base}${c.crossCity ? ' · 跨城' : ' · 市内'}</td></tr>
+        ${c.crossCity
+          ? `<tr><td>预估总里程</td><td class="n">${c.km} km</td></tr>
+             <tr><td>包车</td><td class="n">¥${CAR_KM}/km · ${d.ppl} 人分摊</td></tr>
+             <tr><td>城际高铁</td><td class="n">往返城际票</td></tr>`
+          : `<tr><td>市内交通</td><td class="n">¥20 / 人 / 天</td></tr>`}
+        <tr><td>餐饮</td><td class="n">¥${MEAL} / 人 / 天</td></tr>
+        <tr><td>领队保险物料</td><td class="n">¥${GUIDE} / 人 / 天</td></tr>
+        <tr><td>门票折算</td><td class="n">在校生半价</td></tr>
+      </table>
+    </div>
+
+    <button class="fab" style="position:static;width:100%;justify-content:center;margin:6px 0 8px"
+      id="saveTrip">钤印 · 保存这条路线</button>`;
+  $('#saveTrip').addEventListener('click', () => saveTrip(d, c));
+  animateBars();
+}
+
+function animateBars(){
+  $$('#costBody .fl').forEach(el => {
+    const w = el.dataset.w || '0%';
+    el.style.width = w;
+    try { el.animate([{width:'0%'},{width:w}], {duration:700, easing:'cubic-bezier(.3,.9,.3,1)'}); } catch(e){}
+  });
+}
+
+/* ==================================================================
+   行囊
+   ================================================================== */
+const CHECK = [
+  ['文书 · 票证', ['身份证（住宿与购票必用）','学生证（多数景区半价，必带）','高铁票 / 机票行程单','现金 ¥500（党岭等村寨只收现金）']],
+  ['衣裳 · 四层法', ['冲锋衣（防风防雨）','轻薄羽绒服（10 月高原夜间 -5℃）','速干衣 2 套','抓绒衣 / 保暖内衣','登山鞋（已磨合过）','遮阳帽 + 墨镜']],
+  ['登山 · 涉水', ['登山杖（省膝盖，必备）','头灯 + 备用电池','雨衣（不是雨伞）','-10℃ 睡袋（若含露营）','保温杯 500ml']],
+  ['药石', ['红景天（提前 7 天吃）','布洛芬 / 感冒药','肠胃药、创可贴','葡萄糖 / 电解质冲剂','个人常用药']],
+  ['器具', ['充电宝 ≤20000mAh','数据线 2 根','相机 + 备用存储卡','插线板（青旅客厅常抢插座）']],
+  ['杂项', ['SPF50+ 防晒霜','润唇膏、保湿霜','洗漱包 + 拖鞋','垃圾袋（LNT 无痕山林）','身份证复印件 1 份']]
+];
+
+function renderList(){
+  $('#listBody').innerHTML = CHECK.map(([g, arr], gi) => `
+    <div class="sec"><span class="t">${g}</span><span class="orn"></span></div>
+    <div class="card">${arr.map((t, i) => {
+      const k = gi + '-' + i, on = ST.checks[k];
+      return `<div class="ck"><span class="bx${on ? ' on' : ''}" data-k="${k}"></span>
+        <span class="tx">${t}</span></div>`;
+    }).join('')}</div>`).join('');
+  $$('#listBody .bx').forEach(b => b.addEventListener('click', () => {
+    const k = b.dataset.k;
+    ST.checks[k] = !ST.checks[k];
+    reportOp('check', k + ':' + (ST.checks[k] ? '1' : '0'));
+    save(); renderList();
+  }));
+  const all = CHECK.flatMap(a => a[1]).length;
+  const done = Object.values(ST.checks).filter(Boolean).length;
+  $('#ckHead').textContent = done + ' / ' + all;
+}
+
+/* ==================================================================
+   我的
+   ================================================================== */
+function saveTrip(d, c){
+  ST.saved.unshift({
+    id: Date.now(), name: d.name, days: d.days, ppl: d.ppl,
+    picked: d.pts.map(p => p.id), price: c.price, per: c.per, km: c.km,
+    at: new Date().toLocaleDateString('zh-CN')
+  });
+  ST.saved = ST.saved.slice(0, 8);
+  save(); renderMe();
+  if (COLLAB.on) reportOp('sync', '');
+  toast('已收入行程簿');
+}
+
+function renderMe(){
+  $('#meCount').textContent = ST.saved.length + ' / 8';
+  if (!ST.saved.length){
+    $('#meBody').innerHTML =
+      `<div class="empty"><span class="em">${ic('scroll')}</span>行程簿还是空的<br>在「花费」页点保存这条路线</div>`;
+    return;
+  }
+  $('#meBody').innerHTML = ST.saved.map((t, i) => `
+    <div class="card">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+        <div style="font-family:var(--serif);font-size:14.5px;font-weight:600;letter-spacing:1.2px;
+          line-height:1.5">${t.name}</div>
+        <div class="seal" style="width:28px;height:28px;font-size:9px">存</div>
+      </div>
+      <div class="chips" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px">
+        <span class="tg r">${yuan(t.price)} / 人</span>
+        <span class="tg">${t.days} 天 · ${t.ppl} 人</span>
+        ${t.km ? `<span class="tg b">${t.km} km</span>` : '<span class="tg b">市内</span>'}
+        <span class="tg g">${t.picked.length} 景点</span>
+      </div>
+      <div class="tiny" style="margin-top:10px;line-height:1.7">
+        ${t.picked.map(id => spot(id)?.n || id).join(' · ')}<br>
+        <span style="opacity:.7">保存于 ${t.at}</span></div>
+      <div style="display:flex;gap:8px;margin-top:11px">
+        <button class="chip" style="flex:1;font-size:11.5px" data-load="${i}">载入继续改</button>
+        <button class="chip" style="color:var(--red);border-color:rgba(158,43,37,.3)" data-rm="${i}">删除</button>
+      </div>
+    </div>`).join('');
+  $$('#meBody [data-load]').forEach(b => b.addEventListener('click', () => {
+    const t = ST.saved[+b.dataset.load];
+    ST.picked = t.picked.slice(); ST.days = t.days; ST.ppl = t.ppl;
+    lockDays = null; ST.costSrc = 'diy';
+    save(); renderDIY(); renderCost(); renderMe(); go('diy');
+    toast('已载入「' + t.name + '」');
+  }));
+  $$('#meBody [data-rm]').forEach(b => b.addEventListener('click', () => {
+    ST.saved.splice(+b.dataset.rm, 1); save(); renderMe();
+  }));
+}
+
+/* ==================================================================
+   文物
+   ================================================================== */
+function renderGallery(){
+  $('#gallery').innerHTML = GALLERY.map(g => `
+    <div class="gi" data-g="${g.nm}">
+      <img src="assets/${g.img}" alt="${g.nm}">
+      <span class="cap"><b>${g.nm}</b><span>${g.ds}</span></span>
+    </div>`).join('');
+  $$('#gallery .gi').forEach(el => el.addEventListener('click', () =>
+    toast(el.dataset.g + ' · 已加入行程')));
+}
+
+function renderSrcSegs(){
+  $$('#srcSegs button').forEach(b =>
+    b.classList.toggle('on', b.dataset.src2 === ST.src));
+  $$('#srcSegs button').forEach(b => b.removeEventListener('click', onSrc));
+  $$('#srcSegs button').forEach(b => b.addEventListener('click', onSrc));
+}
+function onSrc(e){
+  ST.src = e.currentTarget.dataset.src2;
+  save(); renderSrcSegs(); renderCarousel(); renderLanes();
+  toast(ST.src === 'new' ? '已切到新找的实景' : '已切到方案里的实拍');
+}
+
+function renderRelics(){
+  $('#relicList').innerHTML = RELICS.map((r, i) => `
+    <div class="relic${i % 3 === 1 ? ' r' : ''}">
+      <span class="rph"><img src="assets/${r.p}" alt="${r.n}">
+        <i class="rmt">${ic(r.m)}</i></span>
+      <span class="stamp">${r.s}</span>
+      <span class="nm">${r.n}</span>
+      <span class="ds">${r.d}</span>
+    </div>`).join('');
+}
+
+/* ==================================================================
+   导航
+   ================================================================== */
+function go(name){
+  $$('.tab').forEach(t => t.classList.toggle('active', t.dataset.v === name));
+  $$('.view').forEach(v => v.classList.toggle('active', v.id === 'v-' + name));
+  $('#sb').classList.toggle('on-dark', name === 'rec');
+  const v = $('#v-' + name);
+  if (v) v.scrollTop = 0;
+  if (name === 'cost'){ renderCost(); animateBars(); }
+}
+$$('.tab').forEach(t => t.addEventListener('click', () => go(t.dataset.v)));
+$$('[data-go]').forEach(el => el.addEventListener('click', () => {
+  go(el.dataset.go);
+  // 只在用户点击时滚动，并且滚容器内部，绝不滚动整页
+  const t = el.dataset.scroll && $('#' + el.dataset.scroll);
+  const box = el.closest('.view');
+  if (t && box) setTimeout(() => {
+    box.scrollTo({top: Math.max(0, t.offsetTop - box.clientHeight / 2), behavior:'smooth'});
+  }, 300);
+}));
+
+
+$$('#costSegs button').forEach(b => b.addEventListener('click', () => {
+  $$('#costSegs button').forEach(x => x.classList.remove('on'));
+  b.classList.add('on'); ST.costSrc = b.dataset.src; save(); renderCost();
+}));
+
+document.addEventListener('click', e => {
+  const a = e.target.closest('[data-act]');
+  if (!a) return;
+  const act = a.dataset.act;
+  if (act === 'day+'){ ST.days = Math.min(15, ST.days + 1); lockDays = null; }
+  if (act === 'day-'){ ST.days = Math.max(1, ST.days - 1); lockDays = null; }
+  if (act === 'ppl+') ST.ppl = Math.min(30, ST.ppl + 1);
+  if (act === 'ppl-') ST.ppl = Math.max(1, ST.ppl - 1);
+  reportOp('set', (act.indexOf('day') === 0 ? 'days:' : 'ppl:') +
+                  (act.indexOf('day') === 0 ? ST.days : ST.ppl));
+  save(); renderDIY(); renderCost();
+});
+
+$('#fabCalc').addEventListener('click', () => {
+  if (ST.picked.length){ ST.costSrc = 'diy'; save(); }
+  $$('#costSegs button').forEach(x => x.classList.toggle('on', x.dataset.src === ST.costSrc));
+  go('cost'); toast('已按当前行程算好费用');
+});
+
+$('#cJoin').addEventListener('click', () => {
+  const nm = ($('#cName').value || '').trim() || ('同学' + Math.floor(Math.random()*90+10));
+  const rm = (($('#cRoomIn').value || '').trim() || 'ABCD').toUpperCase().slice(0,12);
+  const pw = ($('#cPw') ? $('#cPw').value : '').trim();
+  const bk = ($('#cBackend') ? $('#cBackend').value : '').trim();
+  try { localStorage.setItem('shuji_backend', bk); } catch(e){}
+  // 换了房间就丢掉旧令牌，否则会拿着别的房间的令牌去连
+  if (COLLAB.room !== rm){ COLLAB.token = ''; }
+  $('#cName').value = nm; $('#cRoomIn').value = rm;
+  connectCollab(rm, nm, pw);
+  renderCollabPanel();
+});
+
+/* 主持人设置/清除房间密码 */
+$('#cSetPw').addEventListener('click', () => {
+  if (COLLAB.role !== 'host'){ toast('只有主持人能改密码'); return; }
+  const v = prompt('设置房间密码（留空则关闭密码）：');
+  if (v === null) return;
+  const msg = {t:'lock', pw:(v || '').trim()};
+  if (COLLAB.ws && COLLAB.ws.readyState === 1){
+    COLLAB.ws.send(JSON.stringify(msg));
+    if (msg.pw) COLLAB.token = '';   // 改密后旧令牌失效，需要重新认证
+    toast(msg.pw ? '已设置密码，请把密码发给组员' : '已关闭密码');
+  } else {
+    toast('设置密码需要实时连接');
+  }
+});
+
+$('#cLeave').addEventListener('click', () => {
+  COLLAB.on = false;
+  COLLAB.mode = 'off';
+  stopPolling();
+  dropTransport();
+  try { localStorage.removeItem('shuji_session'); } catch(e){}
+  COLLAB.token = '';
+  renderCollab(); renderCollabPanel();
+  toast('已退出协作');
+});
+
+function renderCollabPanel(){
+  const on = COLLAB.on;
+  const setup = $('#cSetup'), live = $('#cLive');
+  if (!setup || !live) return;
+  setup.style.display = on ? 'none' : '';
+  live.style.display = on ? '' : 'none';
+  $('#cMode').textContent = on
+    ? (COLLAB.mode === 'ws' ? '实时连接'
+       : COLLAB.mode === 'sse' ? 'SSE 推送' : '轮询中') : '';
+  if (!on) return;
+  $('#cRoomName').textContent = '房间 ' + COLLAB.room;
+  const d2 = $('#cDot2');
+  d2.style.background = (COLLAB.mode === 'ws' || COLLAB.mode === 'sse') ? '#6FB98F'
+                      : COLLAB.mode === 'poll' ? '#E0A24C' : '#C4635A';
+  $('#cState').textContent = (COLLAB.mode === 'ws' ? '实时同步中（WebSocket）'
+                            : COLLAB.mode === 'sse' ? '实时同步中（SSE 推送）'
+                            : COLLAB.mode === 'poll' ? '轮询同步中（弱网兜底）'
+                            : COLLAB.mode === 'connecting' ? '正在连接…' : '连接已断开')
+                            + ' · ' + COLLAB.peers.length + ' 人在线';
+  const ro = document.getElementById('cRole');
+  if (ro){
+    ro.textContent = ROLE_TXT[COLLAB.role] || COLLAB.role;
+    ro.style.background = COLLAB.role === 'view' ? 'var(--card2)'
+                        : COLLAB.role === 'host' ? 'var(--red)' : 'var(--card2)';
+    ro.style.color = COLLAB.role === 'host' ? '#FBF2DE' : 'var(--ink)';
+  }
+  const lh = document.getElementById('cLockHint');
+  if (lh) lh.textContent = COLLAB.locked ? '🔒 房间已加密' : '房间未加密';
+  const sp = document.getElementById('cSetPw');
+  if (sp) sp.style.display = COLLAB.role === 'host' ? '' : 'none';
+  $('#cPeers').innerHTML = COLLAB.peers.map(p =>
+    '<i title="' + (p.name || '') + '（' + (ROLE_TXT[p.role] || p.role || '') + '）' +
+    '">' + initial(p.name) + '</i>').join('') ||
+    '<span class="tiny">等待同伴加入…</span>';
+  const b = backendBase();
+  const same = b === location.origin;
+  $('#cInvite').textContent = location.origin + location.pathname +
+    '?room=' + COLLAB.room + (same ? '' : '&backend=' + encodeURIComponent(b));
+  renderLog();
+}
+
+let toastTimer = null;
+function toast(msg){
+  const t = $('#toast'); t.textContent = msg; t.classList.add('on');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('on'), 1900);
+}
+
+/* ==================================================================
+   启动
+   ================================================================== */
+
+$$('#costSegs button').forEach(b => b.classList.toggle('on', b.dataset.src === ST.costSrc));
+
+renderToday(); renderCarousel(); renderOrbits(); renderLanes(); renderRec(); renderSrcSegs();
+renderDIY(); renderCost(); renderList(); renderMe(); renderGallery(); renderRelics();
+go('rec');
+
+(function(){
+  const h = (location.hash || '').replace('#','');
+  if (['rec','diy','cost','list','me'].includes(h)) go(h);
+  if (h === 'relic') go('rec');
+})();
+
+/* 启动协作：URL 带 ?room= 就自动入房，否则读上次的房间 */
+(function initCollab(){
+  const u = collabURL();
+  let nm = u.name, rm = u.room;
+  try {
+    nm = nm || localStorage.getItem('shuji_name') || '';
+    rm = rm || (localStorage.getItem('shuji_room') || '');
+  } catch(e){}
+  if ($('#cName')) $('#cName').value = nm || '';
+  if ($('#cRoomIn')) $('#cRoomIn').value = rm || '';
+  if ($('#cBackend')){
+    let b = '';
+    try { b = localStorage.getItem('shuji_backend') || ''; } catch(e){}
+    $('#cBackend').value = b;
+  }
+  // 恢复上次的令牌，免得每次刷新都要重新输密码
+  const sess = loadCollabSession();
+  if (sess && sess.room === rm && sess.token){
+    COLLAB.token = sess.token;
+    COLLAB.role = sess.role || 'edit';
+    COLLAB.cid = COLLAB.cid || ('c' + Math.random().toString(36).slice(2, 10));
+  }
+  if (rm && location.search.indexOf('room=') > -1){
+    connectCollab(rm, nm || '同学', '');
+  } else {
+    renderCollab();
+  }
+  renderCollabPanel();
+  $$('.tab').forEach(t => t.addEventListener('click', () => setTimeout(renderCollab, 0)));
+})();
+</script>
+</body>
+</html>

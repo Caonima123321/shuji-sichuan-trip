@@ -1,0 +1,25 @@
+# 运行时产物
+rooms.json
+rooms.json.tmp
+__pycache__/
+*.pyc
+*.pyo
+
+# 临时与诊断文件
+_*.html
+_*.png
+_*.jpg
+_syn.html
+_diag*.html
+_half.html
+
+# 编辑器 / 系统
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Python 虚拟环境
+venv/
+.venv/
+env/

@@ -1,0 +1,19 @@
+# Render 蓝图：把后端 + 静态前端一起部署成一个 Web Service
+# 用法：Render 控制台 → New → Blueprint → 选这个仓库，会自动读取本文件
+services:
+  - type: web
+    name: shuji-collab
+    runtime: python
+    plan: free
+    region: singapore          # 离国内最近；也可改 oregon / frankfurt
+    buildCommand: "python --version"
+    startCommand: "python server.py"
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.0"
+      # Render 的容器文件系统是临时的，房间状态默认只存内存。
+      # 若想让重启后仍在，可挂持久磁盘并把路径指过去（免费版不支持磁盘）。
+      - key: SHUJI_STORE
+        value: /tmp/shuji-rooms.json
