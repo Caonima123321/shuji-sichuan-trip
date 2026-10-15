@@ -130,6 +130,19 @@ window.addEventListener('message', function(ev){
 });
 function send(which, cmd, extra, ms){ return waitTag(ask(which, cmd, extra), ms); }
 function sleep(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
+/* 等某个客户端真的进入期望状态，而不是猜一个固定时长。
+   服务端广播回来的延迟不固定，本机快时侥幸通过、负载一高就假失败。*/
+async function until(which, test, ms){
+  ms = ms || 20000;
+  var t0 = Date.now();
+  while (Date.now() - t0 < ms){
+    var r = await send(which, 'snap', {}, 8000);
+    if (r && r.data && test(r.data)) return r.data;
+    await sleep(200);
+  }
+  var last = await send(which, 'snap', {}, 8000);
+  return last && last.data;
+}
 
 (async function(){
   try {
@@ -167,14 +180,19 @@ function sleep(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
     out.roBlocked = (rv && rv.data) ? (rv.data.changed === false) : null;
     out.steps.push('只读尝试加景点: changed=' + out.roBlocked);
 
-    await sleep(600);
     await send('E', 'addSpot', {id:'panda'});
     await send('E', 'setDays', {days:7});
     out.steps.push('编辑加景点+改天数');
 
-    await sleep(2400);
-    var sh=await send('H','snap'), sv=await send('V','snap'), se=await send('E','snap');
-    out.H = sh && sh.data; out.V = sv && sv.data; out.E = se && se.data;
+    // 等三方都收敛到期望状态
+    function done(d){
+      return (d.picked || []).indexOf('panda') >= 0 && d.days === 7;
+    }
+    out.H = await until('H', done);
+    out.V = await until('V', done);
+    out.E = await until('E', done);
+    out.steps.push('三方状态: H=' + JSON.stringify((out.H||{}).picked) + '/' + (out.H||{}).days
+                 + ' V=' + JSON.stringify((out.V||{}).picked) + '/' + (out.V||{}).days);
     out.room = ROOM;
   } catch(e){ out.fatal = String(e && e.message || e); }
   document.title = 'R' + JSON.stringify(out);
@@ -241,8 +259,9 @@ def main():
     ok("只读成员的修改被拦住", d.get("roBlocked") is True, d.get("roBlocked"))
     # 注意：只读成员「看到」panda 是对的——那是编辑加进来后同步给它的。
     # 要断言的是它自己那一次点击没有生效（roBlocked），而不是它看不到。
-    ok("只读成员的本地数据未被自己改动",
-       "panda" in (V.get("picked") or []) and d.get("roBlocked") is True,
+    # 被拦住 = 它自己那次点击没生效；同时它应该看到编辑后来加进去的 panda
+    ok("只读成员自己的改动被拦住，但能收到别人的改动",
+       d.get("roBlocked") is True and "panda" in (V.get("picked") or []),
        "roBlocked=%s picked=%s" % (d.get("roBlocked"), V.get("picked")))
     ok("编辑改动同步到主持人", "panda" in (H.get("picked") or []), H.get("picked"))
     ok("编辑改动同步到只读成员", "panda" in (V.get("picked") or []), V.get("picked"))

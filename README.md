@@ -223,7 +223,7 @@ WebSocket 消息格式见 `server.py` 顶部注释。
 ```bash
 python server.py             # 先起本地服务
 python test_collab.py        # 后端协议与权限（49 项）
-python test_browser.py       # 浏览器双端同步（9 项）
+python test_browser.py       # 浏览器双端同步（7 项）
 python test_roles.py         # 浏览器三角色权限（14 项）
 python selftest.py           # 前端渲染自测（36 项）
 
@@ -232,7 +232,7 @@ SHUJI_HOST=shuji-collab.onrender.com SHUJI_PORT=443 SHUJI_SECURE=1 \
   python test_collab.py
 ```
 
-五套测试，共 **127 项断言**：
+五套测试，共 **125 项断言**（本地 106 + 线上 67，含重复覆盖）：
 
 | 文件 | 项数 | 覆盖内容 |
 |---|---|---|

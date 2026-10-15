@@ -1,7 +1,13 @@
 # -*- coding: utf-8 -*-
-"""浏览器级双端协作验证（iframe 方案）
-   关键：主脚本用 const 声明 COLLAB/ST，词法绑定不会挂到 window，
-   所以 iframe 里注入一行桥接 window.__api = {COLLAB, ST, toggleSpot, ...}。"""
+"""浏览器级验证（双客户端实时同步）
+
+   这份是早期版本的替代品。旧版有两处不可靠，都换掉了：
+     1. 靠固定 setTimeout 卡时间 → 改成轮询等真实条件
+     2. 父页面读 iframe.contentWindow.__api → const 是词法绑定不挂 window，
+        改成 srcdoc 注入 agent + postMessage
+   另外注意 agent 源码含 "</script>"，塞进父页面脚本时必须转义，否则
+   HTML 解析器提前闭合脚本，整个 harness 静默失效。
+"""
 import json
 import os
 import re
@@ -12,66 +18,154 @@ EDGE = r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
 BASE = r"D:\d\sichuan-route-ppt"
 D = os.path.join(BASE, "deploy", "static")
 PORT = 8080
-ROOM = "IF" + str(int(time.time()) % 100000)
+ROOM = "B2" + str(int(time.time()) % 100000)
 
-BRIDGE = ("<script>window.__api={COLLAB:COLLAB,ST:ST,toggleSpot:toggleSpot,"
-          "reportOp:reportOp,save:save,renderDIY:renderDIY};</script>")
+AGENT = """<script>
+(function(){
+  function snap(){
+    try {
+      return { ok:true, mode:COLLAB.mode, role:COLLAB.role, me:COLLAB.name,
+               members:COLLAB.peers.length, picked:ST.picked.slice(),
+               days:ST.days, hasToken: !!COLLAB.token };
+    } catch(e){ return { ok:false, err:String(e) }; }
+  }
+  function reply(src, obj){ try { src.postMessage(obj, '*'); } catch(e){} }
+  function joined(){ try { return !!(COLLAB.token && COLLAB.role); } catch(e){ return false; } }
+  window.addEventListener('message', function(ev){
+    var d = ev.data || {}, src = ev.source;
+    if (!d || !d.cmd) return;
+    if (d.cmd === 'join'){
+      try { connectCollab(d.room, d.name, d.pw || ''); }
+      catch(e){ reply(src, {tag:d.tag, err:String(e)}); return; }
+      (function w(n){
+        if (joined() || n > 300){ reply(src, {tag:d.tag, data:snap()}); return; }
+        setTimeout(function(){ w(n+1); }, 100);
+      })(0);
+      return;
+    }
+    if (d.cmd === 'snap'){ reply(src, {tag:d.tag, data:snap()}); return; }
+    if (d.cmd === 'addSpot'){
+      var before = ST.picked.slice();
+      try { toggleSpot(d.id); } catch(e){}
+      reply(src, {tag:d.tag,
+        data:{ changed: ST.picked.join() !== before.join(), snap:snap() }});
+      return;
+    }
+    if (d.cmd === 'setDays'){
+      try { ST.days = d.days; reportOp('set','days:'+d.days); save(); renderDIY();
+            reply(src, {tag:d.tag, data:snap()}); }
+      catch(e){ reply(src, {tag:d.tag, err:String(e)}); }
+      return;
+    }
+  });
+  function up(){ try { parent.postMessage({type:'agent-up'}, '*'); } catch(e){} }
+  window.addEventListener('load', up);
+  setTimeout(up, 150); setTimeout(up, 600); setTimeout(up, 1500);
+})();
+</script>"""
 
 HARNESS = """<!DOCTYPE html><html><head><meta charset="utf-8"><title>wait</title>
-<style>html,body{margin:0}iframe{width:390px;height:740px;border:1px solid #ccc}</style>
+<style>html,body{margin:0}iframe{width:300px;height:520px;border:1px solid #ddd}</style>
 </head><body>
-<iframe id="fa"></iframe><iframe id="fb" style="display:none"></iframe>
+<iframe id="fa"></iframe><iframe id="fb"></iframe>
 <script>
-var ROOM = '%(room)s';
-var A = document.getElementById('fa'), B = document.getElementById('fb');
-A.src = '/_t_a.html?room=' + ROOM + '&name=' + encodeURIComponent('李昊然') + '#diy';
-function api(f){ return f.contentWindow.__api; }
-function snap(f, tag){
-  try {
-    var a = api(f);
-    if (!a) return { err: 'no api' };
-    return {
-      mode: a.COLLAB.mode, me: a.COLLAB.name,
-      peers: a.COLLAB.peers.map(function(p){ return p.name; }),
-      members: a.COLLAB.peers.length,
-      picked: a.ST.picked.slice(), days: a.ST.days
-    };
-  } catch(e){ return { err: String(e) }; }
+var ROOM='__ROOM__';
+var A=document.getElementById('fa'), B=document.getElementById('fb');
+var out={steps:[], up:0, errs:[], ready:{}};
+window.addEventListener('error', function(e){ out.errs.push(String(e.message)); });
+var seq=0, waiting={}, frames={A:A, B:B};
+
+function ask(which, cmd, extra){
+  var tag='q'+(++seq), msg={cmd:cmd, tag:tag}, f=frames[which];
+  for (var k in (extra||{})) msg[k]=extra[k];
+  f.contentWindow.postMessage(msg, '*');
+  return tag;
 }
-var out = { steps: [] };
-setTimeout(function(){ out.A0 = snap(A); out.steps.push('A 入房'); }, 2600);
-setTimeout(function(){
-  B.src = '/_t_b.html?room=' + ROOM + '&name=' + encodeURIComponent('陈墨') + '#diy';
-  out.steps.push('启动 B');
-}, 3300);
-setTimeout(function(){
+function waitTag(tag, ms){
+  return new Promise(function(res){
+    waiting[tag]=res;
+    setTimeout(function(){ if (waiting[tag]){ delete waiting[tag]; res(null); } }, ms||20000);
+  });
+}
+window.addEventListener('message', function(ev){
+  var d = ev.data || {};
+  if (d.type === 'agent-up'){
+    out.up++;
+    for (var k in frames){
+      try { if (ev.source === frames[k].contentWindow) out.ready[k]=true; } catch(e){}
+    }
+    return;
+  }
+  if (d.tag && waiting[d.tag]){ var r=waiting[d.tag]; delete waiting[d.tag]; r(d); }
+});
+function send(which, cmd, extra, ms){ return waitTag(ask(which, cmd, extra), ms); }
+function sleep(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
+
+(async function(){
   try {
-    var a = api(B);
-    if (a.ST.picked.indexOf('panda') < 0) a.toggleSpot('panda');
-    a.ST.days = 7; a.reportOp('set', 'days:7'); a.save(); a.renderDIY();
-    out.steps.push('B 加景点+改天数');
-  } catch(e){ out.steps.push('ERR B 操作 ' + e.message); }
-}, 5400);
-setTimeout(function(){
-  out.B1 = snap(B); out.A1 = snap(A); out.room = ROOM;
+    var raw = await (await fetch('/app.html',{cache:'no-store'})).text();
+    var doc = raw.replace('</body>', __AGENT__ + '</body>');
+    A.srcdoc = doc; B.srcdoc = doc;
+
+    await new Promise(function(res){
+      (function w(n){
+        if ((out.ready.A && out.ready.B) || n > 150){ res(); return; }
+        setTimeout(function(){ w(n+1); }, 100);
+      })(0);
+    });
+    out.steps.push('两文档就绪');
+
+    var ja = await send('A','join',{room:ROOM, name:'甲同学', pw:''});
+    out.steps.push('A 入房: ' + (ja&&ja.data ? ja.data.mode+'/'+ja.data.role : 'no reply'));
+    var jb = await send('B','join',{room:ROOM, name:'乙同学', pw:''});
+    out.steps.push('B 入房: ' + (jb&&jb.data ? jb.data.mode+'/'+jb.data.role : 'no reply'));
+    await sleep(800);
+
+    /* 等对方页面真的收到广播，而不是猜一个固定时长。
+       reportOp 把消息发出去就返回了，服务端广播回来还有一段延迟。*/
+    async function until(which, test, ms){
+      ms = ms || 20000;
+      var t0 = Date.now();
+      while (Date.now() - t0 < ms){
+        var r = await send(which, 'snap', {}, 8000);
+        if (r && r.data && test(r.data)) return r.data;
+        await sleep(200);
+      }
+      var last = await send(which, 'snap', {}, 8000);
+      return last && last.data;
+    }
+
+    // A 加景点 → 等 B 收到
+    await send('A','addSpot',{id:'panda'});
+    out.B_afterAdd = await until('B', function(d){
+      return (d.picked || []).indexOf('panda') >= 0;
+    });
+    out.steps.push('A 加景点后 B 的 picked=' + JSON.stringify((out.B_afterAdd||{}).picked));
+
+    // B 改天数 → 等 A 收到
+    await send('B','setDays',{days:7});
+    out.A_afterDays = await until('A', function(d){ return d.days === 7; });
+    out.steps.push('B 改天数后 A 的 days=' + (out.A_afterDays||{}).days);
+
+    var sa2 = await send('A','snap'), sb2 = await send('B','snap');
+    out.A = sa2 && sa2.data; out.B = sb2 && sb2.data;
+    out.room = ROOM;
+  } catch(e){ out.fatal = String(e && e.message || e); }
   document.title = 'R' + JSON.stringify(out);
-}, 7200);
+})();
 </script></body></html>"""
 
 
 def main():
-    html = open(os.path.join(D, "app.html"), encoding="utf-8").read()
-    for tag in ("a", "b"):
-        open(os.path.join(D, "_t_%s.html" % tag), "w", encoding="utf-8",
-             newline="").write(html.replace("</body>", BRIDGE + "</body>"))
-    open(os.path.join(D, "_iframes.html"), "w", encoding="utf-8",
-         newline="").write(HARNESS % {"room": ROOM})
+    lit = json.dumps(AGENT).replace("</", "<\\/")
+    open(os.path.join(D, "_b2.html"), "w", encoding="utf-8", newline="").write(
+        HARNESS.replace("__ROOM__", ROOM).replace("__AGENT__", lit))
 
     r = subprocess.run(
         [EDGE, "--headless=new", "--disable-gpu", "--no-sandbox",
-         "--virtual-time-budget=13000", "--window-size=900,820", "--dump-dom",
-         "http://127.0.0.1:%d/_iframes.html" % PORT],
-        capture_output=True, timeout=240)
+         "--virtual-time-budget=60000", "--window-size=1000,700", "--dump-dom",
+         "http://127.0.0.1:%d/_b2.html" % PORT],
+        capture_output=True, timeout=300)
     dom = (r.stdout or b"").decode("utf-8", "ignore")
     m = re.search(r"<title>R(.*?)</title>", dom, re.S)
     if not m:
@@ -79,13 +173,16 @@ def main():
         return
     d = json.loads(m.group(1))
 
-    print("房间:", d.get("room"))
-    print("步骤:", " | ".join(d.get("steps", [])))
-    print("\n  A 加入后 :", d.get("A0"))
-    print("  B 改动后 :", d.get("B1"))
-    print("  A 收到后 :", d.get("A1"))
+    print("房间: %s | agent-up: %s | 就绪: %s" % (d.get("room"), d.get("up"), d.get("ready")))
+    for s in d.get("steps", []):
+        print("   ", s)
+    if d.get("fatal"):
+        print("致命错误:", d["fatal"])
+    if d.get("errs"):
+        print("页面错误:", d["errs"])
 
-    A0, A1, B1 = d.get("A0") or {}, d.get("A1") or {}, d.get("B1") or {}
+    A, B = d.get("A") or {}, d.get("B") or {}
+    Ba, Aa = d.get("B_afterAdd") or {}, d.get("A_afterDays") or {}
     PASS, FAIL = [], []
 
     def ok(n, c, e=""):
@@ -93,15 +190,19 @@ def main():
         print("  %s %s%s" % ("PASS" if c else "FAIL", n, ("  [" + str(e) + "]") if e else ""))
 
     print("\n=== 结果 ===")
-    ok("A 建立实时连接", A0.get("mode") == "ws", A0.get("mode"))
-    ok("B 建立实时连接", B1.get("mode") == "ws", B1.get("mode"))
-    ok("A 最终看到 2 人在线", A1.get("members") == 2, A1.get("members"))
-    ok("B 看到 2 人在线", B1.get("members") == 2, B1.get("members"))
-    ok("A 名单含陈墨", "陈墨" in (A1.get("peers") or []), A1.get("peers"))
-    ok("B 名单含李昊然", "李昊然" in (B1.get("peers") or []), B1.get("peers"))
-    ok("B 加的景点同步到 A", "panda" in (A1.get("picked") or []), A1.get("picked"))
-    ok("B 改的天数同步到 A", A1.get("days") == 7, A1.get("days"))
-    ok("B 自己也看到新景点", "panda" in (B1.get("picked") or []), B1.get("picked"))
+    ok("两个客户端都连上", all(x.get("mode") == "ws" for x in (A, B)),
+       "%s/%s" % (A.get("mode"), B.get("mode")))
+    ok("互相看到对方在线", A.get("members") == 2 and B.get("members") == 2,
+       "%s/%s" % (A.get("members"), B.get("members")))
+    ok("名字各自正确", A.get("me") == "甲同学" and B.get("me") == "乙同学",
+       "%s/%s" % (A.get("me"), B.get("me")))
+    ok("A 加的景点同步到 B", "panda" in (Ba.get("picked") or []), Ba.get("picked"))
+    ok("B 改的天数同步到 A", Aa.get("days") == 7, Aa.get("days"))
+    ok("最终两边状态一致",
+       (A.get("picked") or []) == (B.get("picked") or []) and A.get("days") == B.get("days"),
+       "A=%s/%s  B=%s/%s" % (A.get("picked"), A.get("days"), B.get("picked"), B.get("days")))
+    ok("两边都持有令牌", bool(A.get("hasToken")) and bool(B.get("hasToken")),
+       "%s/%s" % (A.get("hasToken"), B.get("hasToken")))
 
     print("\n共%d项 通过%d" % (len(PASS) + len(FAIL), len(PASS)))
     if FAIL:
