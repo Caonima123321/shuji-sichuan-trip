@@ -343,8 +343,16 @@ ok("编辑成员清空行程被拒", bool(rc and rc.get("t") == "denied"), rc)
 # 编辑不能改密码
 e.drain()
 e.send({"t": "lock", "pw": "hacked"})
-rl = e.recv(3.0)
-ok("非主持人改密码被拒", bool(rl and rl.get("t") == "denied"), rl)
+# 轮询找 denied：跨公网时这一帧可能被别的广播挤到后面
+rl = None
+for _ in range(12):
+    m = e.recv(3.0)
+    if not m:
+        continue
+    if m.get("t") == "denied":
+        rl = m
+        break
+ok("非主持人改密码被拒", bool(rl and rl.get("t") == "denied"), rl or "没收到 denied")
 
 # HTTP 越权也要拦
 try:
@@ -418,7 +426,11 @@ def sse_reader():
 
 th = threading.Thread(target=sse_reader, daemon=True)
 th.start()
-time.sleep(2.0)
+# 跨公网时首帧可能晚于 2 秒；轮询等到有内容为止（最多 15 秒）
+for _ in range(75):
+    if any(not x.startswith('CT:') for x in sse_lines) or sse_err:
+        break
+    time.sleep(0.2)
 first = None
 for ln in sse_lines:
     if not ln.startswith("CT:"):
